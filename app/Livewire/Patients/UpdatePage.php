@@ -44,6 +44,7 @@ class UpdatePage extends Component
 
     public function mount(Patient $patient)
     {
+        $this->authorize('update', $patient);
         $this->patient = $patient;
         $this->guardian = $patient->guardian;
 
@@ -95,6 +96,7 @@ class UpdatePage extends Component
 
     public function updateGuardian()
     {
+        $this->authorize('update', $this->guardian);
         $guardianData = $this->validate($this->getGuardianRules());
 
         // Remove 'guardian_' prefix from keys
@@ -110,6 +112,7 @@ class UpdatePage extends Component
 
     public function updatePatient()
     {
+        $this->authorize('update', $this->patient);
         $patientData = $this->validate($this->getPatientRules());
 
         // Remove 'patient_' prefix from keys

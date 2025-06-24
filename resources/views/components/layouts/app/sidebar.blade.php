@@ -17,10 +17,12 @@
             <flux:navlist.group :heading="__('Platform')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
                     wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                @can('viewAny', App\Models\User::class)
                 <flux:navlist.item icon="user" :href="route('users.index')" :current="request()->routeIs('users.*')"
                     wire:navigate>{{ __('Users') }}</flux:navlist.item>
-                <flux:navlist.item icon="user-plus" :href="route('patients.index')" :current="request()->routeIs('patients.*')"
-                    wire:navigate>{{ __('Patients') }}</flux:navlist.item>
+                @endcan
+                <flux:navlist.item icon="user-plus" :href="route('patients.index')"
+                    :current="request()->routeIs('patients.*')" wire:navigate>{{ __('Patients') }}</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 

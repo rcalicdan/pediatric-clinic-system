@@ -1,3 +1,4 @@
+{{-- resources/views/livewire/patients/table.blade.php --}}
 <section class="w-full">
     <x-contents.heading title="Patient Management" />
 
@@ -7,11 +8,13 @@
 
             <x-contents.table-head>
                 <x-utils.search-button searchButtonName="Search Patients" />
+                @can('create', App\Models\Patient::class)
                 <x-utils.create-button createButtonName="Add New Patient" :route="route('patients.create')" />
+                @endcan
             </x-contents.table-head>
 
             <x-flash-session />
-            
+
             <!-- Table -->
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -40,7 +43,7 @@
                                 Contact</th>
                             <th scope="col"
                                 class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions</th>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -63,7 +66,8 @@
                                 {{ \Carbon\Carbon::parse($patient->birth_date)->age }} years
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span
+                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                     {{ $patient->gender === 'male' ? 'bg-blue-100 text-blue-800' : 
                                        ($patient->gender === 'female' ? 'bg-pink-100 text-pink-800' : 'bg-gray-100 text-gray-800') }}">
                                     {{ ucfirst($patient->gender) }}
@@ -72,13 +76,17 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                 {{ $patient->guardian->contact_number }}
                                 @if($patient->guardian->email)
-                                    <div class="text-xs text-gray-500">{{ $patient->guardian->email }}</div>
+                                <div class="text-xs text-gray-500">{{ $patient->guardian->email }}</div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-center space-x-2">
+                                    @can('update', $patient)
                                     <x-utils.update-button :route="route('patients.edit', [$patient->id])" />
+                                    @endcan
+                                    @can('delete', $patient)
                                     <x-utils.delete-button wireClick="delete({{ $patient->id }})" />
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

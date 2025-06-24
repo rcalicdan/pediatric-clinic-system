@@ -47,6 +47,8 @@ class Table extends Component
 
     public function delete(Patient $patient)
     {
+        $this->authorize('delete', $patient);
+
         DB::transaction(function () use ($patient) {
             $guardian = $patient->guardian;
             $patient->delete();

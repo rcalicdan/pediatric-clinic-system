@@ -27,6 +27,12 @@ class CreatePage extends Component
     public $currentStep = 1;
     public $guardian = null;
 
+    public function mount()
+    {
+        $this->authorize('create', Patient::class);
+    }
+
+
     protected $validationAttributes = [
         'guardian_first_name' => 'guardian first name',
         'guardian_last_name' => 'guardian last name',
@@ -73,6 +79,7 @@ class CreatePage extends Component
 
     public function submitGuardian()
     {
+        $this->authorize('create', Guardian::class);
         $guardianData = $this->validate($this->getGuardianRules());
 
         // Remove 'guardian_' prefix from keys
@@ -88,6 +95,7 @@ class CreatePage extends Component
 
     public function submitPatient()
     {
+        $this->authorize('create', Patient::class);
         $patientData = $this->validate($this->getPatientRules());
 
         // Remove 'patient_' prefix from keys and add guardian_id
