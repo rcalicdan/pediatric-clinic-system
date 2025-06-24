@@ -19,6 +19,8 @@
                     wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 <flux:navlist.item icon="user" :href="route('users.index')" :current="request()->routeIs('users.*')"
                     wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                <flux:navlist.item icon="user-plus" :href="route('patients.index')" :current="request()->routeIs('patients.*')"
+                    wire:navigate>{{ __('Patients') }}</flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 

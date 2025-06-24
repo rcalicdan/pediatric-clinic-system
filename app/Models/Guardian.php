@@ -22,4 +22,9 @@ class Guardian extends Model
     {
         return $this->hasMany(Patient::class);
     }
+
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
 }

@@ -31,4 +31,14 @@ class Patient extends Model
     {
         return $this->hasMany(Immunization::class);
     }
+
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function getAgeAttribute()
+    {
+        return \Carbon\Carbon::parse($this->birth_date)->age;
+    }
 }
