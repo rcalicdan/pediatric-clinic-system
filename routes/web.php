@@ -27,8 +27,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('patients')->name('patients.')->group(function () {
         Route::get('', PatientsTable::class)->name('index');
-        Route::get('{patient}', PatientViewPage::class)->name('show');
         Route::get('create', PatientsCreatePage::class)->name('create');
+        Route::get('{patient}', PatientViewPage::class)->name('show');
         Route::get('{patient}/edit', PatientsUpdatePage::class)->name('edit');
     });
 
