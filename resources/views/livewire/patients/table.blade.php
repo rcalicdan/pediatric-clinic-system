@@ -81,6 +81,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex items-center justify-center space-x-2">
+                                    <x-utils.view-button :route="route('patients.show', $patient->id)" />
                                     @can('update', $patient)
                                     <x-utils.update-button :route="route('patients.edit', [$patient->id])" />
                                     @endcan

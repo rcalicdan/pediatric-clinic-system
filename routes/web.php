@@ -10,6 +10,7 @@ use App\Livewire\User\UpdatePage;
 use App\Livewire\Patients\Table as PatientsTable;
 use App\Livewire\Patients\CreatePage as PatientsCreatePage;
 use App\Livewire\Patients\UpdatePage as PatientsUpdatePage;
+use App\Livewire\Patients\ViewPage as PatientViewPage;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -26,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('patients')->name('patients.')->group(function () {
         Route::get('', PatientsTable::class)->name('index');
+        Route::get('{patient}', PatientViewPage::class)->name('show');
         Route::get('create', PatientsCreatePage::class)->name('create');
         Route::get('{patient}/edit', PatientsUpdatePage::class)->name('edit');
     });

@@ -80,9 +80,8 @@ class CreatePage extends Component
     public function submitGuardian()
     {
         $this->authorize('create', Guardian::class);
-        $guardianData = $this->validate($this->getGuardianRules());
 
-        // Remove 'guardian_' prefix from keys
+        $guardianData = $this->validate($this->getGuardianRules());
         $guardianData = collect($guardianData)->mapWithKeys(function ($value, $key) {
             return [str_replace('guardian_', '', $key) => $value];
         })->toArray();
@@ -96,9 +95,9 @@ class CreatePage extends Component
     public function submitPatient()
     {
         $this->authorize('create', Patient::class);
+
         $patientData = $this->validate($this->getPatientRules());
 
-        // Remove 'patient_' prefix from keys and add guardian_id
         $patientData = collect($patientData)->mapWithKeys(function ($value, $key) {
             return [str_replace('patient_', '', $key) => $value];
         })->toArray();
