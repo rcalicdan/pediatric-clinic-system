@@ -64,14 +64,19 @@ class UpdatePage extends Component
         $validatedData = $this->validate();
 
         try {
-            if (
-                isset($validatedData['appointment_date']) &&
-                $validatedData['appointment_date'] !== $this->appointment->appointment_date->format('Y-m-d')
-            ) {
+            $patientChanged = isset($validatedData['patient_id']) &&
+                $validatedData['patient_id'] != $this->appointment->patient_id;
+
+            $dateChanged = isset($validatedData['appointment_date']) &&
+                $validatedData['appointment_date'] !== $this->appointment->appointment_date->format('Y-m-d');
+
+            if ($patientChanged || $dateChanged) {
+                $checkPatientId = $validatedData['patient_id'] ?? $this->appointment->patient_id;
+                $checkDate = $validatedData['appointment_date'] ?? $this->appointment->appointment_date->format('Y-m-d');
 
                 Appointment::checkPatientAppointmentConflict(
-                    $this->patient_id,
-                    $validatedData['appointment_date'],
+                    $checkPatientId,
+                    $checkDate,
                     $this->appointment->id
                 );
             }
