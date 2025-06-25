@@ -19,6 +19,8 @@ return new class extends Migration
             $table->enum('gender', ['male', 'female', 'other']);
             $table->foreignId('guardian_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
+
+            $table->index(['first_name', 'last_name'], 'full_name_idx');
         });
     }
 

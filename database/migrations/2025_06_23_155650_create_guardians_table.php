@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('relationship')->nullable();
             $table->text('address')->nullable();
             $table->timestamps();
+
+            $table->index(['first_name', 'last_name'], 'full_name_idx');
         });
     }
 
