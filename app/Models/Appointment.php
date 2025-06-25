@@ -102,7 +102,7 @@ class Appointment extends Model
     public function updateStatus(AppointmentStatuses $newStatus, ?User $user = null): bool
     {
         if (!$this->status->canTransitionTo($newStatus, $user)) {
-            return false; 
+            return false;
         }
 
         $this->status = $newStatus;
@@ -149,5 +149,21 @@ class Appointment extends Model
     public function getAllowedStatusTransitions(?User $user = null): array
     {
         return $this->status->getAllowedTransitions($user);
+    }
+
+    public static function checkPatientAppointmentConflict($patientId, $appointmentDate, $excludeId = null)
+    {
+        $query = self::where('patient_id', $patientId)
+            ->whereDate('appointment_date', $appointmentDate);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        if ($query->exists()) {
+            throw new \Exception(
+                "This patient already has an appointment scheduled for " . Carbon::parse($appointmentDate)->format('M d, Y')
+            );
+        }
     }
 }

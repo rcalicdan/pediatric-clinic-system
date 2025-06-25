@@ -5,7 +5,6 @@ namespace App\Livewire\Appointements;
 use App\Models\Appointment;
 use App\Models\Patient;
 use App\Enums\AppointmentStatuses;
-use App\Rules\UniquePatientAppointmentDate;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Carbon\Carbon;
@@ -39,12 +38,7 @@ class UpdatePage extends Component
         ];
 
         if (auth()->user()->isAdmin() || $this->appointment->status === AppointmentStatuses::WAITING) {
-            $rules['appointment_date'] = [
-                'required',
-                'date',
-                'after_or_equal:today',
-                new UniquePatientAppointmentDate($this->patient_id, $this->appointment->id)
-            ];
+            $rules['appointment_date'] = ['required', 'date', 'after_or_equal:today'];
         }
 
         if (auth()->user()->isAdmin()) {
@@ -64,47 +58,24 @@ class UpdatePage extends Component
         $this->validateOnly($propertyName);
     }
 
-    /**
-     * Check if the current patient has an appointment on the selected date
-     * (excluding the current appointment being updated)
-     */
-    public function hasConflictingAppointment(): bool
-    {
-        if (!$this->patient_id || !$this->appointment_date) {
-            return false;
-        }
-
-        $patient = Patient::find($this->patient_id);
-        if (!$patient) {
-            return false;
-        }
-
-        return $patient->hasAppointmentOnDate($this->appointment_date, $this->appointment->id);
-    }
-
-    /**
-     * Get the conflicting appointment details for display
-     */
-    public function getConflictingAppointment()
-    {
-        if (!$this->patient_id || !$this->appointment_date) {
-            return null;
-        }
-
-        $patient = Patient::find($this->patient_id);
-        if (!$patient) {
-            return null;
-        }
-
-        return $patient->getAppointmentOnDate($this->appointment_date, $this->appointment->id);
-    }
-
     public function update()
     {
         $this->authorize('update', $this->appointment);
         $validatedData = $this->validate();
 
         try {
+            if (
+                isset($validatedData['appointment_date']) &&
+                $validatedData['appointment_date'] !== $this->appointment->appointment_date->format('Y-m-d')
+            ) {
+
+                Appointment::checkPatientAppointmentConflict(
+                    $this->patient_id,
+                    $validatedData['appointment_date'],
+                    $this->appointment->id
+                );
+            }
+
             if (isset($validatedData['status'])) {
                 $newStatus = AppointmentStatuses::from($validatedData['status']);
                 if ($this->appointment->status !== $newStatus) {
@@ -123,20 +94,8 @@ class UpdatePage extends Component
             session()->flash('success', 'Appointment updated successfully!');
             $this->redirectRoute('appointments.edit', ['appointment' => $this->appointment], navigate: true);
         } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred while updating the appointment.');
+            session()->flash('error', $e->getMessage());
         }
-    }
-
-    /**
-     * Sync component properties with the appointment model
-     */
-    protected function syncComponentProperties(): void
-    {
-        $this->patient_id = $this->appointment->patient_id;
-        $this->appointment_date = $this->appointment->appointment_date->format('Y-m-d');
-        $this->reason = $this->appointment->reason;
-        $this->notes = $this->appointment->notes;
-        $this->status = $this->appointment->status->value;
     }
 
     public function canUpdateDate(): bool
@@ -162,15 +121,12 @@ class UpdatePage extends Component
     {
         $patients = Patient::orderBy('first_name')->get();
         $availableStatuses = $this->getAvailableStatuses();
-        $conflictingAppointment = $this->getConflictingAppointment();
 
         return view('livewire.appointements.update-page', [
             'patients' => $patients,
             'availableStatuses' => $availableStatuses,
             'canUpdateDate' => $this->canUpdateDate(),
             'canUpdateStatus' => $this->canUpdateStatus(),
-            'hasConflict' => $this->hasConflictingAppointment(),
-            'conflictingAppointment' => $conflictingAppointment
         ]);
     }
 }

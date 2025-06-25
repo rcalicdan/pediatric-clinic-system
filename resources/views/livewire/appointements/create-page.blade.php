@@ -3,6 +3,7 @@
 
     <x-contents.layout>
         <div class="p-4 sm:p-6 lg:p-8">
+            <x-flash-session />
             <form wire:submit.prevent='create' class="space-y-6">
                 <!-- Patient Selection -->
                 <div>

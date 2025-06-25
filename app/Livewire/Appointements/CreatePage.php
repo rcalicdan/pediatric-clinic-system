@@ -5,7 +5,6 @@ namespace App\Livewire\Appointements;
 use App\Models\Appointment;
 use App\Models\Patient;
 use App\Enums\AppointmentStatuses;
-use App\Rules\UniquePatientAppointmentDate;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -25,12 +24,7 @@ class CreatePage extends Component
     {
         return [
             'patient_id' => ['required', 'exists:patients,id'],
-            'appointment_date' => [
-                'required',
-                'date',
-                'after_or_equal:today',
-                new UniquePatientAppointmentDate($this->patient_id)
-            ],
+            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
@@ -46,18 +40,27 @@ class CreatePage extends Component
         $this->authorize('create', Appointment::class);
 
         $validatedData = $this->validate();
-        $validatedData['status'] = AppointmentStatuses::WAITING->value;
 
-        Appointment::create($validatedData);
-        session()->flash('success', 'Appointment created successfully.');
+        try {
+            Appointment::checkPatientAppointmentConflict(
+                $this->patient_id, 
+                $this->appointment_date
+            );
 
-        return $this->redirectRoute('appointments.index', navigate: true);
+            $validatedData['status'] = AppointmentStatuses::WAITING->value;
+            Appointment::create($validatedData);
+            
+            session()->flash('success', 'Appointment created successfully.');
+            return $this->redirectRoute('appointments.index', navigate: true);
+
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
+        }
     }
 
     public function render()
     {
         $patients = Patient::orderBy('first_name')->get();
-
         return view('livewire.appointements.create-page', compact('patients'));
     }
 }
