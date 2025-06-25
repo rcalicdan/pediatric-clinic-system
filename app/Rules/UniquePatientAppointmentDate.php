@@ -20,8 +20,6 @@ class UniquePatientAppointmentDate implements ValidationRule
 
     /**
      * Run the validation rule.
-     *
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
@@ -43,7 +41,9 @@ class UniquePatientAppointmentDate implements ValidationRule
         }
 
         if ($query->exists()) {
+            session()->flash('error', 'This patient already has an appointment on the selected date.');
             $fail('This patient already has an appointment on the selected date.');
+            throw new \Exception('Duplicate appointment date for patient ID: ' . $this->patientId . ' on date: ' . $appointmentDate);
         }
     }
 }
