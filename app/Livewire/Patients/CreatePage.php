@@ -32,6 +32,21 @@ class CreatePage extends Component
         $this->authorize('create', Patient::class);
     }
 
+    public function dehydrate()
+    {
+        // Store guardian ID in session to track it across requests
+        if ($this->guardian) {
+            session(['temp_guardian_id' => $this->guardian->id]);
+        }
+    }
+
+    public function hydrate()
+    {
+        // Restore guardian from session if it exists
+        if (session('temp_guardian_id') && !$this->guardian) {
+            $this->guardian = Guardian::find(session('temp_guardian_id'));
+        }
+    }
 
     protected $validationAttributes = [
         'guardian_first_name' => 'guardian first name',
@@ -106,6 +121,8 @@ class CreatePage extends Component
 
         Patient::create($patientData);
 
+        $this->clearTempGuardianSession();
+
         session()->flash('success', 'Patient created successfully.');
 
         return $this->redirectRoute('patients.index', navigate: true);
@@ -117,6 +134,29 @@ class CreatePage extends Component
             $this->currentStep--;
         }
     }
+
+    public function cancel()
+    {
+        $this->cleanupTempGuardian();
+
+        return $this->redirectRoute('patients.index', navigate: true);
+    }
+
+    public function cleanupTempGuardian()
+    {
+        if ($this->guardian && $this->guardian->patients()->count() === 0) {
+            $this->guardian->delete();
+            $this->guardian = null;
+        }
+        $this->clearTempGuardianSession();
+    }
+
+    private function clearTempGuardianSession()
+    {
+        session()->forget('temp_guardian_id');
+    }
+
+    public function __destruct() {}
 
     public function getGenderOptions(): array
     {
