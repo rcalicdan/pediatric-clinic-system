@@ -2,12 +2,59 @@
 
 namespace App\Livewire\Appointements;
 
+use App\Models\Appointment;
+use App\Models\Patient;
+use App\Enums\AppointmentStatuses;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
+use Carbon\Carbon;
 
 class CreatePage extends Component
 {
+    public $patient_id;
+    public $appointment_date;
+    public $reason;
+    public $notes;
+    public $status;
+
+    public function mount()
+    {
+        $this->appointment_date = Carbon::today()->format('Y-m-d');
+        $this->status = AppointmentStatuses::WAITING->value;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'patient_id' => ['required', 'exists:patients,id'],
+            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
+            'reason' => ['required', 'string', 'min:5', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'status' => ['required', Rule::in(AppointmentStatuses::getAllStatuses())]
+        ];
+    }
+
+    public function updated($propertyName)
+    {
+        $this->validateOnly($propertyName);
+    }
+
+    public function create()
+    {
+        $this->authorize('create', Appointment::class);
+
+        $validatedData = $this->validate();
+        Appointment::create($validatedData);
+        session()->flash('success', 'Appointment created successfully.');
+
+        return $this->redirectRoute('appointments.index', navigate: true);
+    }
+
     public function render()
     {
-        return view('livewire.appointements.create-page');
+        $patients = Patient::orderBy('first_name')->get();
+        $availableStatuses = AppointmentStatuses::cases();
+
+        return view('livewire.appointements.create-page', compact('patients', 'availableStatuses'));
     }
 }

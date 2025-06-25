@@ -16,13 +16,21 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Platform')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-                    wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    wire:navigate>{{ __('Dashboard') }}
+                </flux:navlist.item>
                 @can('viewAny', App\Models\User::class)
                 <flux:navlist.item icon="user" :href="route('users.index')" :current="request()->routeIs('users.*')"
-                    wire:navigate>{{ __('Users') }}</flux:navlist.item>
+                    wire:navigate>{{ __('Users') }}
+                </flux:navlist.item>
                 @endcan
                 <flux:navlist.item icon="user-plus" :href="route('patients.index')"
-                    :current="request()->routeIs('patients.*')" wire:navigate>{{ __('Patients') }}</flux:navlist.item>
+                    :current="request()->routeIs('patients.*')" wire:navigate>{{ __('Patients') }}
+                </flux:navlist.item>
+                @can('viewAny', App\Models\Appointment::class)
+                <flux:navlist.item icon="user-plus" :href="route('appointments.index')"
+                    :current="request()->routeIs('appointments.*')" wire:navigate>{{ __('Appointments') }}
+                </flux:navlist.item>
+                @endcan
             </flux:navlist.group>
         </flux:navlist>
 
