@@ -48,13 +48,20 @@
                     <!-- Doctor Selection -->
                     <div class="sm:col-span-2">
                         <label for="user_id" class="block text-sm font-medium text-gray-700">Doctor</label>
-                        <select wire:model="user_id" id="user_id"
-                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            <option value="">Select a doctor</option>
-                            @foreach ($doctors as $doctor)
-                                <option value="{{ $doctor->id }}">{{ $doctor->full_name }}</option>
-                            @endforeach
-                        </select>
+                        @if (auth()->user()->isAdmin())
+                            <select wire:model="user_id" id="user_id"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="">Select a doctor</option>
+                                @foreach ($doctors as $doctor)
+                                    <option value="{{ $doctor->id }}">{{ $doctor->full_name }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="text" value="{{ auth()->user()->full_name }}" readonly
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 sm:text-sm">
+                            <input type="hidden" wire:model="user_id" value="{{ auth()->id() }}">
+                            <p class="mt-1 text-xs text-gray-500">You can only assign consultations to yourself.</p>
+                        @endif
                         @error('user_id')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

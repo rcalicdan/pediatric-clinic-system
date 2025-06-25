@@ -14,7 +14,7 @@ class AppointmentConsultationForm extends Component
     public ?Consultation $consultation = null;
     public bool $isEditing = false;
     public bool $showForm = false;
-    
+
     // Form fields
     public $user_id;
     public $diagnosis = '';
@@ -24,24 +24,37 @@ class AppointmentConsultationForm extends Component
     public $weight_kg = '';
     public $temperature_c = '';
     public $notes = '';
-    
+
     // Available doctors
     public $doctors = [];
 
-    protected $rules = [
-        'user_id' => 'required|exists:users,id',
-        'diagnosis' => 'nullable|string|max:1000',
-        'treatment' => 'nullable|string|max:1000',
-        'prescription' => 'nullable|string|max:1000',
-        'height_cm' => 'nullable|numeric|min:0|max:300',
-        'weight_kg' => 'nullable|numeric|min:0|max:500',
-        'temperature_c' => 'nullable|numeric|min:30|max:50',
-        'notes' => 'nullable|string|max:2000',
-    ];
+    protected function rules()
+    {
+        $rules = [
+            'diagnosis' => 'nullable|string|max:1000',
+            'treatment' => 'nullable|string|max:1000',
+            'prescription' => 'nullable|string|max:1000',
+            'height_cm' => 'nullable|numeric|min:0|max:300',
+            'weight_kg' => 'nullable|numeric|min:0|max:500',
+            'temperature_c' => 'nullable|numeric|min:30|max:50',
+            'notes' => 'nullable|string|max:2000',
+        ];
+
+        // Add user_id validation based on user role
+        if (auth()->user()->isAdmin()) {
+            $rules['user_id'] = 'required|exists:users,id';
+        } else {
+            // For non-admin users, user_id should be current user and can't be changed
+            $rules['user_id'] = 'required|in:' . auth()->id();
+        }
+
+        return $rules;
+    }
 
     protected $messages = [
         'user_id.required' => 'Please select a doctor.',
         'user_id.exists' => 'Please select a valid doctor.',
+        'user_id.in' => 'You can only assign consultations to yourself.',
         'height_cm.numeric' => 'Height must be a valid number.',
         'height_cm.min' => 'Height must be greater than 0.',
         'height_cm.max' => 'Height must be less than 300 cm.',
@@ -58,20 +71,25 @@ class AppointmentConsultationForm extends Component
         $this->appointment = $appointment;
         $this->consultation = $appointment->consultation;
         $this->isEditing = $this->consultation !== null;
-        
+
         // Load doctors (users with doctor or admin role)
         $this->doctors = User::whereIn('role', ['doctor', 'admin'])
             ->orderBy('first_name')
             ->get();
-        
-        // Set default doctor to current user if they're a doctor
-        if (!$this->isEditing && auth()->user()->isDoctor()) {
+
+        // Set user_id based on current user and role
+        if (!$this->isEditing) {
+            // For new consultations, always set to current user
             $this->user_id = auth()->id();
-        }
-        
-        // Populate form if editing
-        if ($this->isEditing) {
+        } else {
+            // For editing, populate from existing consultation
             $this->populateForm();
+
+            // If current user is not admin and trying to edit someone else's consultation
+            if (!auth()->user()->isAdmin() && $this->consultation->user_id !== auth()->id()) {
+                // Reset to current user for non-admin users
+                $this->user_id = auth()->id();
+            }
         }
     }
 
@@ -92,7 +110,7 @@ class AppointmentConsultationForm extends Component
     public function toggleForm()
     {
         $this->showForm = !$this->showForm;
-        
+
         if (!$this->showForm) {
             $this->resetForm();
         }
@@ -108,22 +126,33 @@ class AppointmentConsultationForm extends Component
             $this->weight_kg = '';
             $this->temperature_c = '';
             $this->notes = '';
-            
-            if (auth()->user()->isDoctor()) {
-                $this->user_id = auth()->id();
-            }
+
+            // Always reset to current user
+            $this->user_id = auth()->id();
         } else {
             $this->populateForm();
+
+            // If current user is not admin, ensure user_id is current user
+            if (!auth()->user()->isAdmin()) {
+                $this->user_id = auth()->id();
+            }
         }
-        
+
         $this->resetValidation();
     }
 
     public function save()
     {
-        $this->authorize($this->isEditing ? 'update' : 'create', 
-                        $this->isEditing ? $this->consultation : Consultation::class);
-        
+        $this->authorize(
+            $this->isEditing ? 'update' : 'create',
+            $this->isEditing ? $this->consultation : Consultation::class
+        );
+
+        // Ensure non-admin users can only assign to themselves
+        if (!auth()->user()->isAdmin()) {
+            $this->user_id = auth()->id();
+        }
+
         $this->validate();
 
         try {
@@ -151,9 +180,8 @@ class AppointmentConsultationForm extends Component
             $this->showForm = false;
             $this->dispatch('consultation-saved');
             session()->flash('success', $message);
-            
+
             $this->appointment->refresh();
-            
         } catch (ValidationException $e) {
             $this->addError('appointment_id', $e->getMessage());
         } catch (\Exception $e) {
@@ -164,20 +192,19 @@ class AppointmentConsultationForm extends Component
     public function delete()
     {
         $this->authorize('delete', $this->consultation);
-        
+
         try {
             $this->consultation->delete();
             $this->consultation = null;
             $this->isEditing = false;
             $this->showForm = false;
             $this->resetForm();
-            
+
             $this->dispatch('consultation-deleted');
             session()->flash('success', 'Consultation deleted successfully.');
-            
+
             // Refresh the appointment relationship
             $this->appointment->refresh();
-            
         } catch (\Exception $e) {
             $this->addError('general', 'An error occurred while deleting the consultation.');
         }
