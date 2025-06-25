@@ -32,46 +32,25 @@ class UpdatePage extends Component
     public function rules(): array
     {
         $rules = [
-            'patient_id' => [
-                'required',
-                'exists:patients,id',
-                Rule::unique('appointments')
-                    ->where('patient_id', $this->patient_id)
-                    ->where('appointment_date', $this->appointment_date)
-                    ->ignore($this->appointment->id)
-            ],
+            'patient_id' => ['required', 'exists:patients,id'],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
 
-        // Only allow date changes if appointment is still waiting
-        if ($this->appointment->status === AppointmentStatuses::WAITING) {
-            $rules['appointment_date'] = [
-                'required',
-                'date',
-                'after_or_equal:today',
-                Rule::unique('appointments')
-                    ->where('patient_id', $this->patient_id)
-                    ->where('appointment_date', $this->appointment_date)
-                    ->ignore($this->appointment->id)
-            ];
+        if (auth()->user()->isAdmin() || $this->appointment->status === AppointmentStatuses::WAITING) {
+            $rules['appointment_date'] = ['required', 'date', 'after_or_equal:today'];
         }
 
-        // Only allow status changes based on current status
-        $allowedStatuses = $this->appointment->status->getAllowedTransitions();
-        if (!empty($allowedStatuses)) {
-            $rules['status'] = ['required', Rule::in(array_map(fn($s) => $s->value, $allowedStatuses))];
+        if (auth()->user()->isAdmin()) {
+            $rules['status'] = ['required', Rule::in(array_map(fn($s) => $s->value, AppointmentStatuses::cases()))];
+        } else {
+            $allowedStatuses = $this->appointment->status->getAllowedTransitions();
+            if (!empty($allowedStatuses)) {
+                $rules['status'] = ['required', Rule::in(array_map(fn($s) => $s->value, $allowedStatuses))];
+            }
         }
 
         return $rules;
-    }
-
-    public function messages(): array
-    {
-        return [
-            'appointment_date.unique' => 'This patient already has an appointment on the selected date.',
-            'patient_id.unique' => 'This patient already has an appointment on the selected date.',
-        ];
     }
 
     public function updated($propertyName)
@@ -84,32 +63,57 @@ class UpdatePage extends Component
         $this->authorize('update', $this->appointment);
         $validatedData = $this->validate();
 
-    
-        if (isset($validatedData['status'])) {
-            $newStatus = AppointmentStatuses::from($validatedData['status']);
-            if (!$this->appointment->updateStatus($newStatus)) {
-                session()->flash('error', 'Invalid status transition.');
-                return;
+        try {
+            if (isset($validatedData['status'])) {
+                $newStatus = AppointmentStatuses::from($validatedData['status']);
+                if ($this->appointment->status !== $newStatus) {
+                    if (!$this->appointment->updateStatus($newStatus, auth()->user())) {
+                        session()->flash('error', 'Invalid status transition.');
+                        return;
+                    }
+                }
+                unset($validatedData['status']);
             }
-            unset($validatedData['status']); 
-        }
 
-        $this->appointment->update($validatedData);
-        session()->flash('success', 'Appointment updated successfully!');
+            if (!empty($validatedData)) {
+                $this->appointment->update($validatedData);
+            }
+
+            session()->flash('success', 'Appointment updated successfully!');
+            $this->redirectRoute('appointments.edit', ['appointment' => $this->appointment], navigate: true);
+        } catch (\Exception $e) {
+            session()->flash('error', 'An error occurred while updating the appointment.');
+        }
+    }
+
+    /**
+     * Sync component properties with the appointment model
+     */
+    protected function syncComponentProperties(): void
+    {
+        $this->patient_id = $this->appointment->patient_id;
+        $this->appointment_date = $this->appointment->appointment_date->format('Y-m-d');
+        $this->reason = $this->appointment->reason;
+        $this->notes = $this->appointment->notes;
+        $this->status = $this->appointment->status->value;
     }
 
     public function canUpdateDate(): bool
     {
-        return $this->appointment->status === AppointmentStatuses::WAITING;
+        return auth()->user()->isAdmin() || $this->appointment->status === AppointmentStatuses::WAITING;
     }
 
     public function canUpdateStatus(): bool
     {
-        return !empty($this->appointment->status->getAllowedTransitions());
+        return auth()->user()->isAdmin() || !empty($this->appointment->status->getAllowedTransitions());
     }
 
     public function getAvailableStatuses(): array
     {
+        if (auth()->user()->isAdmin()) {
+            return AppointmentStatuses::cases();
+        }
+
         return $this->appointment->status->getAllowedTransitions();
     }
 
