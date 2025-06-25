@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Patient extends Model
 {
@@ -39,6 +40,28 @@ class Patient extends Model
 
     public function getAgeAttribute()
     {
-        return \Carbon\Carbon::parse($this->birth_date)->age;
+        return Carbon::parse($this->birth_date)->age;
+    }
+
+    public function hasAppointmentOnDate($date, $excludeAppointmentId = null)
+    {
+        $query = $this->appointments()->where('appointment_date', $date);
+        
+        if ($excludeAppointmentId) {
+            $query->where('id', '!=', $excludeAppointmentId);
+        }
+        
+        return $query->exists();
+    }
+
+    public function getAppointmentOnDate($date, $excludeAppointmentId = null)
+    {
+        $query = $this->appointments()->where('appointment_date', $date);
+        
+        if ($excludeAppointmentId) {
+            $query->where('id', '!=', $excludeAppointmentId);
+        }
+        
+        return $query->first();
     }
 }
