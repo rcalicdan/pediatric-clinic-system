@@ -15,12 +15,10 @@ class CreatePage extends Component
     public $appointment_date;
     public $reason;
     public $notes;
-    public $status;
 
     public function mount()
     {
         $this->appointment_date = Carbon::today()->format('Y-m-d');
-        $this->status = AppointmentStatuses::WAITING->value;
     }
 
     public function rules(): array
@@ -30,7 +28,6 @@ class CreatePage extends Component
             'appointment_date' => ['required', 'date', 'after_or_equal:today'],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
-            'status' => ['required', Rule::in(AppointmentStatuses::getAllStatuses())]
         ];
     }
 
@@ -44,6 +41,7 @@ class CreatePage extends Component
         $this->authorize('create', Appointment::class);
 
         $validatedData = $this->validate();
+        $validatedData['status'] = AppointmentStatuses::WAITING->value;
         Appointment::create($validatedData);
         session()->flash('success', 'Appointment created successfully.');
 
@@ -53,8 +51,7 @@ class CreatePage extends Component
     public function render()
     {
         $patients = Patient::orderBy('first_name')->get();
-        $availableStatuses = AppointmentStatuses::cases();
 
-        return view('livewire.appointements.create-page', compact('patients', 'availableStatuses'));
+        return view('livewire.appointements.create-page', compact('patients'));
     }
 }

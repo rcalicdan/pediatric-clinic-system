@@ -132,4 +132,15 @@ class Appointment extends Model
     {
         return $this->status->getDisplayName();
     }
+
+    /**
+     * Check if the appointment status can be updated to a specific status
+     */
+    /**
+     * Check if the appointment status can be updated
+     */
+    public function canUpdateStatus(): bool
+    {
+        return $this->canBeModified();
+    }
 }

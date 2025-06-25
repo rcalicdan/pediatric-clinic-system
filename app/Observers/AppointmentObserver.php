@@ -41,4 +41,26 @@ class AppointmentObserver
             $appointment->appointment_date = $appointment->getOriginal('appointment_date');
         }
     }
+
+    /**
+     * Handle the Appointment "deleted" event.
+     */
+    public function deleted(Appointment $appointment): void
+    {
+        // Get the deleted appointment's queue number and date
+        $deletedQueueNumber = $appointment->queue_number;
+        $appointmentDate = $appointment->appointment_date;
+
+        // Update all appointments on the same date with queue numbers greater than the deleted one
+        Appointment::where('appointment_date', $appointmentDate)
+            ->where('queue_number', '>', $deletedQueueNumber)
+            ->orderBy('queue_number')
+            ->get()
+            ->each(function ($appointment) {
+                // Temporarily disable the observer to prevent infinite loops
+                $appointment->withoutEvents(function () use ($appointment) {
+                    $appointment->decrement('queue_number');
+                });
+            });
+    }
 }

@@ -47,22 +47,6 @@
                     @enderror
                 </div>
 
-                <!-- Status -->
-                <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="status" name="status" wire:model.live='status'
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        required>
-                        @foreach($availableStatuses as $statusOption)
-                        <option value="{{ $statusOption->value }}">{{ $statusOption->getDisplayName() }}</option>
-                        @endforeach
-                    </select>
-
-                    @error('status')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
                 <!-- Notes -->
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>

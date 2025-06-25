@@ -34,10 +34,14 @@ class AppointmentPolicy
 
     public function delete(User $user, Appointment $appointment): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         if (!$appointment->canBeModified()) {
             return false;
         }
 
-        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
+        return in_array($user->role, [UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 }
