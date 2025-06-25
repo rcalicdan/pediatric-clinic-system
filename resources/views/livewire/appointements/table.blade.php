@@ -11,28 +11,34 @@
             </x-contents.table-head>
 
             <x-flash-session />
-            
+
             <!-- Table -->
             <div class="overflow-x-auto bg-white shadow-md rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Queue #
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Patient
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Date
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Reason
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
@@ -57,24 +63,41 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center space-x-2">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $appointment->getStatusBadgeClass() }}">
+                                    <span
+                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $appointment->getStatusBadgeClass() }}">
                                         {{ $appointment->getStatusDisplayName() }}
                                     </span>
-                                    @if($appointment->canUpdateStatus())
+                                    @if($appointment->canUpdateStatus(auth()->user()))
                                     <div class="relative" x-data="{ open: false }">
                                         <button @click="open = !open" class="text-gray-400 hover:text-gray-600">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                                <path
+                                                    d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                             </svg>
                                         </button>
-                                        <div x-show="open" @click.away="open = false" 
-                                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                                        <div x-show="open" @click.away="open = false"
+                                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                                            @if(auth()->user()->isAdmin())
+                                            {{-- Admin can change to any status --}}
+                                            @foreach(App\Enums\AppointmentStatuses::cases() as $status)
+                                            @if($status !== $appointment->status)
+                                            <button
+                                                wire:click="updateStatus({{ $appointment->id }}, '{{ $status->value }}')"
+                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                Change to {{ $status->getDisplayName() }}
+                                            </button>
+                                            @endif
+                                            @endforeach
+                                            @else
+                                            {{-- Non-admin follows normal transitions --}}
                                             @foreach($appointment->status->getAllowedTransitions() as $status)
-                                            <button wire:click="updateStatus({{ $appointment->id }}, '{{ $status->value }}')"
-                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <button
+                                                wire:click="updateStatus({{ $appointment->id }}, '{{ $status->value }}')"
+                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                                 Change to {{ $status->getDisplayName() }}
                                             </button>
                                             @endforeach
+                                            @endif
                                         </div>
                                     </div>
                                     @endif
@@ -91,7 +114,7 @@
                                     @endcan
 
                                     @can('delete', $appointment)
-                                    @if($appointment->canBeModified())
+                                    @if($appointment->canBeModified(auth()->user()))
                                     <x-utils.delete-button wireClick="delete({{ $appointment->id }})" />
                                     @endif
                                     @endcan
@@ -136,7 +159,7 @@
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         <option value="">All Statuses</option>
                         @foreach($availableStatuses as $status)
-                            <option value="{{ $status->value }}">{{ $status->getDisplayName() }}</option>
+                        <option value="{{ $status->value }}">{{ $status->getDisplayName() }}</option>
                         @endforeach
                     </select>
                 </div>

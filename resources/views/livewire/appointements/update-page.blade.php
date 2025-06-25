@@ -23,14 +23,18 @@
                     @enderror
                 </div>
 
-                <!-- Appointment Date - Only editable if waiting -->
+                <!-- Appointment Date - Editable if waiting or if admin -->
                 <div>
                     <label for="appointment_date" class="block text-sm font-medium text-gray-700">Appointment
                         Date</label>
-                    @if($canUpdateDate)
+                    @if($canUpdateDate || auth()->user()->isAdmin())
                     <input type="date" id="appointment_date" name="appointment_date" wire:model.live='appointment_date'
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         required>
+                    @if(auth()->user()->isAdmin() && !$canUpdateDate)
+                    <p class="mt-1 text-xs text-blue-600">Admin override: You can change the date despite current status
+                    </p>
+                    @endif
                     @else
                     <div class="mt-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
                         <span class="text-gray-700">{{ $appointment->appointment_date->format('M d, Y') }}</span>
@@ -64,19 +68,35 @@
                     @enderror
                 </div>
 
-                <!-- Status - Only show transitions if available -->
+                <!-- Status - Show all options for admin, transitions for others -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Status</label>
-                    @if($canUpdateStatus)
+                    @if($canUpdateStatus || auth()->user()->isAdmin())
                     <select id="status" name="status" wire:model.live='status'
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         required>
                         <option value="{{ $appointment->status->value }}">{{ $appointment->status->getDisplayName() }}
                             (Current)</option>
+
+                        @if(auth()->user()->isAdmin())
+                        {{-- Admin can change to any status --}}
+                        @foreach(App\Enums\AppointmentStatuses::cases() as $statusOption)
+                        @if($statusOption !== $appointment->status)
+                        <option value="{{ $statusOption->value }}">{{ $statusOption->getDisplayName() }}</option>
+                        @endif
+                        @endforeach
+                        @else
+                        {{-- Non-admin follows normal transitions --}}
                         @foreach($availableStatuses as $statusOption)
                         <option value="{{ $statusOption->value }}">{{ $statusOption->getDisplayName() }}</option>
                         @endforeach
+                        @endif
                     </select>
+
+                    @if(auth()->user()->isAdmin() && !$canUpdateStatus)
+                    <p class="mt-1 text-xs text-blue-600">Admin override: You can change status despite current
+                        restrictions</p>
+                    @endif
                     @else
                     <div class="mt-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md">
                         <span

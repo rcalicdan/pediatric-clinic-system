@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Enums\AppointmentStatuses;
+use App\Models\User;
 
 class Appointment extends Model
 {
@@ -96,9 +97,17 @@ class Appointment extends Model
 
     /**
      * Update appointment status with validation
+     * Admins can bypass state transition validation
      */
-    public function updateStatus(AppointmentStatuses $newStatus): bool
+    public function updateStatus(AppointmentStatuses $newStatus, User $user = null): bool
     {
+        // If user is admin, allow any status change
+        if ($user && $user->isAdmin()) {
+            $this->status = $newStatus;
+            return $this->save();
+        }
+
+        // For non-admins, validate state transitions
         $allowedTransitions = $this->status->getAllowedTransitions();
 
         if (!in_array($newStatus, $allowedTransitions)) {
@@ -111,9 +120,14 @@ class Appointment extends Model
 
     /**
      * Check if appointment can be modified
+     * Admins can always modify appointments
      */
-    public function canBeModified(): bool
+    public function canBeModified(User $user = null): bool
     {
+        if ($user && $user->isAdmin()) {
+            return true;
+        }
+
         return !$this->status->isFinalState();
     }
 
@@ -134,13 +148,11 @@ class Appointment extends Model
     }
 
     /**
-     * Check if the appointment status can be updated to a specific status
-     */
-    /**
      * Check if the appointment status can be updated
+     * Admins can always update status
      */
-    public function canUpdateStatus(): bool
+    public function canUpdateStatus(?User $user = null): bool
     {
-        return $this->canBeModified();
+        return $this->canBeModified($user);
     }
 }
