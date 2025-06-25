@@ -25,9 +25,23 @@ class CreatePage extends Component
     {
         return [
             'patient_id' => ['required', 'exists:patients,id'],
-            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
+            'appointment_date' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                Rule::unique('appointments')
+                    ->where('patient_id', $this->patient_id)
+                    ->where('appointment_date', $this->appointment_date)
+            ],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'appointment_date.unique' => 'This patient already has an appointment on the selected date.',
         ];
     }
 
@@ -42,6 +56,7 @@ class CreatePage extends Component
 
         $validatedData = $this->validate();
         $validatedData['status'] = AppointmentStatuses::WAITING->value;
+
         Appointment::create($validatedData);
         session()->flash('success', 'Appointment created successfully.');
 

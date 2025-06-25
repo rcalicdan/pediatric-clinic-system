@@ -32,14 +32,29 @@ class UpdatePage extends Component
     public function rules(): array
     {
         $rules = [
-            'patient_id' => ['required', 'exists:patients,id'],
+            'patient_id' => [
+                'required',
+                'exists:patients,id',
+                Rule::unique('appointments')
+                    ->where('patient_id', $this->patient_id)
+                    ->where('appointment_date', $this->appointment_date)
+                    ->ignore($this->appointment->id)
+            ],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
 
         // Only allow date changes if appointment is still waiting
         if ($this->appointment->status === AppointmentStatuses::WAITING) {
-            $rules['appointment_date'] = ['required', 'date', 'after_or_equal:today'];
+            $rules['appointment_date'] = [
+                'required',
+                'date',
+                'after_or_equal:today',
+                Rule::unique('appointments')
+                    ->where('patient_id', $this->patient_id)
+                    ->where('appointment_date', $this->appointment_date)
+                    ->ignore($this->appointment->id)
+            ];
         }
 
         // Only allow status changes based on current status
@@ -49,6 +64,14 @@ class UpdatePage extends Component
         }
 
         return $rules;
+    }
+
+    public function messages(): array
+    {
+        return [
+            'appointment_date.unique' => 'This patient already has an appointment on the selected date.',
+            'patient_id.unique' => 'This patient already has an appointment on the selected date.',
+        ];
     }
 
     public function updated($propertyName)
@@ -61,14 +84,14 @@ class UpdatePage extends Component
         $this->authorize('update', $this->appointment);
         $validatedData = $this->validate();
 
-        // Handle status update with validation
+    
         if (isset($validatedData['status'])) {
             $newStatus = AppointmentStatuses::from($validatedData['status']);
             if (!$this->appointment->updateStatus($newStatus)) {
                 session()->flash('error', 'Invalid status transition.');
                 return;
             }
-            unset($validatedData['status']); // Remove from update data since we handled it separately
+            unset($validatedData['status']); 
         }
 
         $this->appointment->update($validatedData);

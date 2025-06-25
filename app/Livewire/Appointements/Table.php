@@ -65,7 +65,7 @@ class Table extends Component
 
         $status = AppointmentStatuses::from($newStatus);
 
-        if (!$appointment->updateStatus($status)) {
+        if (!$appointment->updateStatus($status, auth()->user())) {
             session()->flash('error', 'Invalid status transition.');
             return;
         }

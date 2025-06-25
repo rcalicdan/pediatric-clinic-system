@@ -99,19 +99,10 @@ class Appointment extends Model
      * Update appointment status with validation
      * Admins can bypass state transition validation
      */
-    public function updateStatus(AppointmentStatuses $newStatus, User $user = null): bool
+    public function updateStatus(AppointmentStatuses $newStatus, ?User $user = null): bool
     {
-        // If user is admin, allow any status change
-        if ($user && $user->isAdmin()) {
-            $this->status = $newStatus;
-            return $this->save();
-        }
-
-        // For non-admins, validate state transitions
-        $allowedTransitions = $this->status->getAllowedTransitions();
-
-        if (!in_array($newStatus, $allowedTransitions)) {
-            return false; // Invalid transition
+        if (!$this->status->canTransitionTo($newStatus, $user)) {
+            return false; 
         }
 
         $this->status = $newStatus;
@@ -122,13 +113,9 @@ class Appointment extends Model
      * Check if appointment can be modified
      * Admins can always modify appointments
      */
-    public function canBeModified(User $user = null): bool
+    public function canBeModified(?User $user = null): bool
     {
-        if ($user && $user->isAdmin()) {
-            return true;
-        }
-
-        return !$this->status->isFinalState();
+        return !$this->status->isFinalState($user);
     }
 
     /**
@@ -154,5 +141,13 @@ class Appointment extends Model
     public function canUpdateStatus(?User $user = null): bool
     {
         return $this->canBeModified($user);
+    }
+
+    /**
+     * Get allowed status transitions for this appointment
+     */
+    public function getAllowedStatusTransitions(?User $user = null): array
+    {
+        return $this->status->getAllowedTransitions($user);
     }
 }

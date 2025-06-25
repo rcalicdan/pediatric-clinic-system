@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Models\User;
+
 enum AppointmentStatuses: string
 {
     case WAITING = 'waiting';
@@ -50,9 +52,14 @@ enum AppointmentStatuses: string
 
     /**
      * Get statuses that can be transitioned to from current status
+     * Admins can transition to any status except the current one
      */
-    public function getAllowedTransitions(): array
+    public function getAllowedTransitions(?User $user = null): array
     {
+        if ($user && $user->isAdmin()) {
+            return array_filter(self::cases(), fn($status) => $status !== $this);
+        }
+
         return match ($this) {
             self::WAITING => [self::IN_PROGRESS, self::CANCELLED, self::MISSED],
             self::IN_PROGRESS => [self::COMPLETED, self::CANCELLED],
@@ -64,9 +71,34 @@ enum AppointmentStatuses: string
 
     /**
      * Check if this status is a final state
+     * Admins can override final states
      */
-    public function isFinalState(): bool
+    public function isFinalState(?User $user = null): bool
     {
+        if ($user && $user->isAdmin()) {
+            return false;
+        }
+
         return in_array($this, [self::COMPLETED, self::MISSED, self::CANCELLED]);
+    }
+
+    /**
+     * Check if a transition to another status is allowed
+     */
+    public function canTransitionTo(AppointmentStatuses $newStatus, ?User $user = null): bool
+    {
+        if ($user && $user->isAdmin()) {
+            return $this !== $newStatus;
+        }
+
+        return in_array($newStatus, $this->getAllowedTransitions($user));
+    }
+
+    /**
+     * Get all possible statuses except the current one (useful for admin dropdowns)
+     */
+    public function getAllOtherStatuses(): array
+    {
+        return array_filter(self::cases(), fn($status) => $status !== $this);
     }
 }
