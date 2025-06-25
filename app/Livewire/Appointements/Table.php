@@ -8,6 +8,7 @@ use App\Enums\AppointmentStatuses;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
+use Carbon\Carbon;
 
 class Table extends Component
 {
@@ -29,9 +30,28 @@ class Table extends Component
     public $searchQueue = '';
 
     public $isSearchModalOpen = false;
+    public $showTodayOnly = true; // Flag to control default filtering
+
+    public function mount()
+    {
+        // Set default date to today if no search parameters are present
+        if (
+            empty($this->searchId) &&
+            empty($this->searchPatient) &&
+            empty($this->searchDate) &&
+            empty($this->searchStatus) &&
+            empty($this->searchQueue)
+        ) {
+            $this->searchDate = Carbon::today()->format('Y-m-d');
+            $this->showTodayOnly = true;
+        } else {
+            $this->showTodayOnly = false;
+        }
+    }
 
     public function performSearch()
     {
+        $this->showTodayOnly = false;
         $this->resetPage();
         $this->dispatch('search-completed');
     }
@@ -40,9 +60,10 @@ class Table extends Component
     {
         $this->searchId = '';
         $this->searchPatient = '';
-        $this->searchDate = '';
+        $this->searchDate = Carbon::today()->format('Y-m-d');
         $this->searchStatus = '';
         $this->searchQueue = '';
+        $this->showTodayOnly = true;
         $this->resetPage();
     }
 
@@ -94,6 +115,9 @@ class Table extends Component
             })
             ->when($this->searchQueue, function ($query) {
                 return $query->where('queue_number', $this->searchQueue);
+            })
+            ->when($this->showTodayOnly && empty($this->searchDate), function ($query) {
+                return $query->whereDate('appointment_date', Carbon::today());
             })
             ->orderBy('appointment_date', 'desc')
             ->orderBy('queue_number')

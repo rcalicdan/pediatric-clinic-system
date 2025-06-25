@@ -31,6 +31,9 @@
                     :current="request()->routeIs('appointments.*')" wire:navigate>{{ __('Appointments') }}
                 </flux:navlist.item>
                 @endcan
+                <flux:navlist.item icon="user-plus" :href="route('consultations.index')"
+                    :current="request()->routeIs('consultations.*')" wire:navigate>{{ __('Consultations') }}
+                </flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 

@@ -21,7 +21,7 @@ class ConsultationPolicy
      */
     public function view(User $user, Consultation $consultation): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return $user->isAdmin() || $user->isDoctor();
     }
 
     /**
