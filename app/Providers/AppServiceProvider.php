@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Observers\AppointmentObserver;
+use App\Services\Dashboard\DashboardServiceInterface;
+use App\Services\Dashboard\MySQLDashboardService;
+use App\Services\Dashboard\SQLiteDashboardService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
@@ -14,7 +17,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(DashboardServiceInterface::class, function ($app) {
+            $driver = config('dashboard.driver', 'mysql');
+
+            return match ($driver) {
+                'sqlite' => new SQLiteDashboardService(),
+                'mysql' => new MySQLDashboardService(),
+                default => new MySQLDashboardService(),
+            };
+        });
     }
 
     /**
