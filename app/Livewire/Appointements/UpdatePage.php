@@ -18,6 +18,12 @@ class UpdatePage extends Component
     public $notes;
     public $status;
 
+    // Searchable dropdown properties
+    public $patientSearch = '';
+    public $showPatientDropdown = false;
+    public $selectedPatient = null;
+    
+
     public function mount(Appointment $appointment)
     {
         $this->authorize('update', $appointment);
@@ -27,6 +33,10 @@ class UpdatePage extends Component
         $this->reason = $appointment->reason;
         $this->notes = $appointment->notes;
         $this->status = $appointment->status->value;
+        
+        // Set initial patient selection
+        $this->selectedPatient = $appointment->patient;
+        $this->patientSearch = $appointment->patient->full_name . ' (ID: ' . $appointment->patient->id . ')';
     }
 
     public function rules(): array
@@ -51,6 +61,53 @@ class UpdatePage extends Component
         }
 
         return $rules;
+    }
+
+    public function updatedPatientSearch()
+    {
+        $this->showPatientDropdown = !empty($this->patientSearch);
+        if (empty($this->patientSearch)) {
+            $this->selectedPatient = null;
+            $this->patient_id = null;
+        }
+    }
+
+    public function selectPatient($patientId)
+    {
+        $patient = Patient::find($patientId);
+        if ($patient) {
+            $this->patient_id = $patient->id;
+            $this->selectedPatient = $patient;
+            $this->patientSearch = $patient->full_name . ' (ID: ' . $patient->id . ')';
+            $this->showPatientDropdown = false;
+        }
+    }
+
+    public function clearPatientSelection()
+    {
+        $this->patient_id = null;
+        $this->selectedPatient = null;
+        $this->patientSearch = '';
+        $this->showPatientDropdown = false;
+    }
+
+    public function getSearchedPatientsProperty()
+    {
+        if (empty($this->patientSearch)) {
+            return Patient::orderBy('first_name')
+                ->limit(15)
+                ->get();
+        }
+
+        return Patient::where(function ($query) {
+            $query->where('first_name', 'like', '%' . $this->patientSearch . '%')
+                ->orWhere('last_name', 'like', '%' . $this->patientSearch . '%')
+                ->orWhere('id', 'like', '%' . $this->patientSearch . '%')
+                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $this->patientSearch . '%']);
+        })
+        ->orderBy('first_name')
+        ->limit(15)
+        ->get();
     }
 
     public function updated($propertyName)
@@ -124,11 +181,10 @@ class UpdatePage extends Component
 
     public function render()
     {
-        $patients = Patient::orderBy('first_name')->get();
         $availableStatuses = $this->getAvailableStatuses();
 
         return view('livewire.appointements.update-page', [
-            'patients' => $patients,
+            'searchedPatients' => $this->searchedPatients,
             'availableStatuses' => $availableStatuses,
             'canUpdateDate' => $this->canUpdateDate(),
             'canUpdateStatus' => $this->canUpdateStatus(),

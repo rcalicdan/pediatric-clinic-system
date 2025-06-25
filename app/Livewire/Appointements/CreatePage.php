@@ -14,6 +14,11 @@ class CreatePage extends Component
     public $appointment_date;
     public $reason;
     public $notes;
+    
+    // Searchable dropdown properties
+    public $patientSearch = '';
+    public $showPatientDropdown = false;
+    public $selectedPatient = null;
 
     public function mount()
     {
@@ -28,6 +33,53 @@ class CreatePage extends Component
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
+    }
+
+    public function updatedPatientSearch()
+    {
+        $this->showPatientDropdown = !empty($this->patientSearch);
+        if (empty($this->patientSearch)) {
+            $this->selectedPatient = null;
+            $this->patient_id = null;
+        }
+    }
+
+    public function selectPatient($patientId)
+    {
+        $patient = Patient::find($patientId);
+        if ($patient) {
+            $this->patient_id = $patient->id;
+            $this->selectedPatient = $patient;
+            $this->patientSearch = $patient->full_name . ' (ID: ' . $patient->id . ')';
+            $this->showPatientDropdown = false;
+        }
+    }
+
+    public function clearPatientSelection()
+    {
+        $this->patient_id = null;
+        $this->selectedPatient = null;
+        $this->patientSearch = '';
+        $this->showPatientDropdown = false;
+    }
+
+    public function getSearchedPatientsProperty()
+    {
+        if (empty($this->patientSearch)) {
+            return Patient::orderBy('first_name')
+                ->limit(15)
+                ->get();
+        }
+
+        return Patient::where(function ($query) {
+            $query->where('first_name', 'like', '%' . $this->patientSearch . '%')
+                ->orWhere('last_name', 'like', '%' . $this->patientSearch . '%')
+                ->orWhere('id', 'like', '%' . $this->patientSearch . '%')
+                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $this->patientSearch . '%']);
+        })
+        ->orderBy('first_name')
+        ->limit(15)
+        ->get();
     }
 
     public function updated($propertyName)
@@ -60,7 +112,8 @@ class CreatePage extends Component
 
     public function render()
     {
-        $patients = Patient::orderBy('first_name')->get();
-        return view('livewire.appointements.create-page', compact('patients'));
+        return view('livewire.appointements.create-page', [
+            'searchedPatients' => $this->searchedPatients
+        ]);
     }
 }
