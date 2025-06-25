@@ -5,7 +5,7 @@ namespace App\Livewire\Appointements;
 use App\Models\Appointment;
 use App\Models\Patient;
 use App\Enums\AppointmentStatuses;
-use Illuminate\Validation\Rule;
+use App\Rules\UniquePatientAppointmentDate;
 use Livewire\Component;
 use Carbon\Carbon;
 
@@ -29,19 +29,10 @@ class CreatePage extends Component
                 'required',
                 'date',
                 'after_or_equal:today',
-                Rule::unique('appointments')
-                    ->where('patient_id', $this->patient_id)
-                    ->where('appointment_date', $this->appointment_date)
+                new UniquePatientAppointmentDate($this->patient_id)
             ],
             'reason' => ['required', 'string', 'min:5', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'appointment_date.unique' => 'This patient already has an appointment on the selected date.',
         ];
     }
 
