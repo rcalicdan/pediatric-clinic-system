@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->timestamps();
 
-            $table->index(['first_name', 'last_name'], 'full_name_idx');
+            $table->index(['first_name', 'last_name'], 'guardian_full_name_idx');
         });
     }
 

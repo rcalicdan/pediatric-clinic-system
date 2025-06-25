@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->constrained()->cascadeOnDelete();
-            $table->unsignedInteger('queue_number');
+            $table->unsignedInteger('queue_number')->nullable();
             $table->date('appointment_date');
             $table->text('reason')->nullable();
             $table->enum('status', AppointmentStatuses::getAllStatuses())

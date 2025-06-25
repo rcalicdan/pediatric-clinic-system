@@ -14,22 +14,22 @@ class AppointmentPolicy
 
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 
     public function view(User $user, Appointment $appointment): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 
     public function create(User $user): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 
     public function update(User $user, Appointment $appointment): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 
     public function delete(User $user, Appointment $appointment): bool
@@ -38,6 +38,6 @@ class AppointmentPolicy
             return false;
         }
 
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
     }
 }
