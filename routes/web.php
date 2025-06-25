@@ -15,6 +15,10 @@ use App\Livewire\Appointements\Table as AppointmentsTable;
 use App\Livewire\Appointements\CreatePage as AppointmentsCreatePage;
 use App\Livewire\Appointements\ViewPage as AppointmentsViewPage;
 use App\Livewire\Appointements\UpdatePage as AppointmentsUpdatePage;
+use App\Livewire\Consultations\Table as ConsultationsTable;
+use App\Livewire\Consultations\CreatePage as ConsultationsCreatePage;
+use App\Livewire\Consultations\UpdatePage as ConsultationsUpdatePage;
+use App\Livewire\Consultations\ViewPage as ConsultationsViewPage;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -41,6 +45,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('create', AppointmentsCreatePage::class)->name('create');
         Route::get('{appointment}', AppointmentsViewPage::class)->name('show');
         Route::get('{appointment}/edit', AppointmentsUpdatePage::class)->name('edit');
+    });
+
+    Route::prefix('consultations')->name('consultations.')->group(function () {
+        Route::get('', ConsultationsTable::class)->name('index');
+        // Route::get('create', ConsultationsCreatePage::class)->name('create');
+        // Route::get('{consultation}', ConsultationsViewPage::class)->name('show');
+        // Route::get('{consultation}/edit', ConsultationsUpdatePage::class)->name('edit');
     });
 
     Route::prefix('settings')->group(function () {
