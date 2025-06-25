@@ -12,7 +12,7 @@ class ViewPage extends Component
     public function mount(Appointment $appointment)
     {
         $this->authorize('view', $appointment);
-        $this->appointment = $appointment->load(['patient', 'consultation', 'invoice']);
+        $this->appointment = $appointment->load(['patient', 'consultation.doctor', 'invoice']);
     }
 
     public function render()
