@@ -24,12 +24,12 @@ class SQLiteDashboardService implements DashboardServiceInterface
 
     public function getPendingAppointments(): int
     {
-        return Appointment::where('status', AppointmentStatuses::WAITING->value)->count();
+        return Appointment::where('status', AppointmentStatuses::WAITING)->count();
     }
 
     public function getCompletedAppointments(): int
     {
-        return Appointment::where('status', AppointmentStatuses::COMPLETED->value)->count();
+        return Appointment::where('status', AppointmentStatuses::COMPLETED)->count();
     }
 
     public function getTodayAppointments(): int
@@ -67,7 +67,13 @@ class SQLiteDashboardService implements DashboardServiceInterface
         $data = [];
 
         foreach ($appointments as $status => $appointmentGroup) {
-            $labels[] = ucfirst($status);
+            // Handle both enum instances and string values
+            if ($status instanceof AppointmentStatuses) {
+                $labels[] = $status->getDisplayName();
+            } else {
+                $statusEnum = AppointmentStatuses::from($status);
+                $labels[] = $statusEnum->getDisplayName();
+            }
             $data[] = $appointmentGroup->count();
         }
 
@@ -185,9 +191,9 @@ class SQLiteDashboardService implements DashboardServiceInterface
                     'id' => $appointment->id,
                     'queue_number' => $appointment->queue_number,
                     'patient_name' => $appointment->patient->full_name,
-                    'status' => $appointment->status,
-                    'status_display' => ucfirst($appointment->status),
-                    'status_class' => $this->getStatusClass($appointment->status),
+                    'status' => $appointment->status->value,
+                    'status_display' => $appointment->status->getDisplayName(),
+                    'status_class' => $appointment->status->getBadgeClass(),
                     'appointment_date' => Carbon::parse($appointment->appointment_date)->format('M d, Y'),
                     'created_at' => Carbon::parse($appointment->created_at)->format('M d, Y H:i'),
                 ];
@@ -197,7 +203,6 @@ class SQLiteDashboardService implements DashboardServiceInterface
 
     public function getMonthlyPatientsGrowth(): array
     {
-        // Use Eloquent instead of raw queries
         $patients = Patient::whereYear('created_at', Carbon::now()->year)
             ->get()
             ->groupBy(function ($patient) {
@@ -234,16 +239,5 @@ class SQLiteDashboardService implements DashboardServiceInterface
             'consultations_today' => $consultationsToday,
             'consultations_this_week' => $consultationsThisWeek,
         ];
-    }
-
-    private function getStatusClass(string $status): string
-    {
-        return match ($status) {
-            'waiting' => 'bg-yellow-100 text-yellow-800',
-            'completed' => 'bg-green-100 text-green-800',
-            'in_progress' => 'bg-blue-100 text-blue-800',
-            'cancelled' => 'bg-red-100 text-red-800',
-            default => 'bg-gray-100 text-gray-800',
-        };
     }
 }

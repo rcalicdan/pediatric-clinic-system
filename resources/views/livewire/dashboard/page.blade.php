@@ -56,17 +56,17 @@
                     </div>
                 </div>
 
-                <!-- Monthly Revenue Card -->
+                <!-- Completed Appointments Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-600">Monthly Revenue</p>
-                            <p class="text-3xl font-bold text-gray-900">₱{{ number_format($monthlyRevenue, 2) }}</p>
+                            <p class="text-sm font-medium text-gray-600">Completed Appointments</p>
+                            <p class="text-3xl font-bold text-gray-900">{{ number_format($completedAppointments) }}</p>
                         </div>
                         <div class="bg-purple-100 p-3 rounded-full">
                             <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
                                 </path>
                             </svg>
                         </div>
@@ -93,23 +93,6 @@
                     </div>
                 </div>
 
-                <!-- Completed Appointments -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-emerald-500">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Completed Appointments</p>
-                            <p class="text-3xl font-bold text-gray-900">{{ number_format($completedAppointments) }}</p>
-                        </div>
-                        <div class="bg-emerald-100 p-3 rounded-full">
-                            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Total Consultations -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-pink-500">
                     <div class="flex items-center justify-between">
@@ -122,6 +105,24 @@
                             <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Consultations -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-emerald-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Today's Consultations</p>
+                            <p class="text-3xl font-bold text-gray-900">{{
+                                number_format($consultationMetrics['consultations_today']) }}</p>
+                        </div>
+                        <div class="bg-emerald-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6">
                                 </path>
                             </svg>
                         </div>
@@ -164,10 +165,10 @@
 
             <!-- Charts Row 2 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Revenue Trend Chart -->
+                <!-- Monthly Patients Growth Chart -->
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Revenue Trend (Last 30 Days)</h3>
-                    <div id="revenueChart"></div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Patient Registration</h3>
+                    <div id="patientGrowthChart"></div>
                 </div>
 
                 <!-- Top Doctors Chart -->
@@ -192,33 +193,29 @@
                 </div>
             </div>
 
-            <!-- Charts Row 4 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Monthly Patients Growth Chart -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Patient Registration</h3>
-                    <div id="patientGrowthChart"></div>
-                </div>
-
-                <!-- Average Consultation Metrics -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Consultation Metrics</h3>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                            <span class="text-sm font-medium text-gray-600">Average Consultation Time</span>
-                            <span class="text-2xl font-bold text-gray-900">{{
-                                $consultationMetrics['avg_consultation_time'] }} min</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
-                            <span class="text-sm font-medium text-gray-600">Today's Consultations</span>
-                            <span class="text-2xl font-bold text-blue-900">{{
-                                $consultationMetrics['consultations_today'] }}</span>
-                        </div>
-                        <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
-                            <span class="text-sm font-medium text-gray-600">This Week's Total</span>
-                            <span class="text-2xl font-bold text-green-900">{{
-                                $consultationMetrics['consultations_this_week'] }}</span>
-                        </div>
+            <!-- Consultation Metrics -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Consultation Metrics</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-600">Average Consultation Time</span>
+                        <span class="text-2xl font-bold text-gray-900">{{
+                            $consultationMetrics['avg_consultation_time'] }} min</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-600">Today's Consultations</span>
+                        <span class="text-2xl font-bold text-blue-900">{{
+                            $consultationMetrics['consultations_today'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-600">This Week's Total</span>
+                        <span class="text-2xl font-bold text-green-900">{{
+                            $consultationMetrics['consultations_this_week'] }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-purple-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-600">Total Consultations</span>
+                        <span class="text-2xl font-bold text-purple-900">{{
+                            $consultationMetrics['total_consultations'] }}</span>
                     </div>
                 </div>
             </div>
@@ -244,9 +241,6 @@
                                     Appointment Date</th>
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Amount</th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Created</th>
                             </tr>
                         </thead>
@@ -267,13 +261,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                     {{ $appointment['appointment_date'] }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    @if($appointment['amount'] > 0)
-                                    ₱{{ number_format($appointment['amount'], 2) }}
-                                    @else
-                                    <span class="text-gray-400">-</span>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                     {{ $appointment['created_at'] }}
@@ -299,7 +286,6 @@
                this.$nextTick(() => {
                    this.initMonthlyAppointmentsChart();
                    this.initAppointmentStatusChart();
-                   this.initRevenueChart();
                    this.initTopDoctorsChart();
                    this.initPatientAgeChart();
                    this.initTimeSlotChart();
@@ -402,66 +388,6 @@
                if (document.querySelector("#appointmentStatusChart")) {
                    this.charts.appointmentStatus = new ApexCharts(document.querySelector("#appointmentStatusChart"), appointmentStatusOptions);
                    this.charts.appointmentStatus.render();
-               }
-           },
-
-           initRevenueChart() {
-               this.destroyChart('revenue');
-               
-               const revenueOptions = {
-                   series: [{
-                       name: 'Revenue',
-                       data: @json($revenueData['data'])
-                   }],
-                   chart: {
-                       type: 'area',
-                       height: 350,
-                       toolbar: { show: false }
-                   },
-                   dataLabels: { enabled: false },
-                   stroke: {
-                       curve: 'smooth',
-                       width: 3,
-                       colors: ['#10B981']
-                   },
-                   fill: {
-                       type: 'gradient',
-                       gradient: {
-                           shadeIntensity: 1,
-                           opacityFrom: 0.7,
-                           opacityTo: 0.3,
-                           stops: [0, 90, 100]
-                       },
-                       colors: ['#10B981']
-                   },
-                   xaxis: {
-                       categories: @json($revenueData['categories']),
-                       labels: { style: { fontSize: '12px' } }
-                   },
-                   yaxis: {
-                       title: { text: 'Amount (₱)' },
-                       labels: {
-                           formatter: function (val) {
-                               return '₱' + val.toLocaleString()
-                           }
-                       }
-                   },
-                   tooltip: {
-                       y: {
-                           formatter: function (val) {
-                               return '₱' + val.toLocaleString()
-                           }
-                       }
-                   },
-                   grid: {
-                       borderColor: '#f3f4f6',
-                       strokeDashArray: 3
-                   }
-               };
-
-               if (document.querySelector("#revenueChart")) {
-                   this.charts.revenue = new ApexCharts(document.querySelector("#revenueChart"), revenueOptions);
-                   this.charts.revenue.render();
                }
            },
 

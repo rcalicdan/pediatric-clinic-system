@@ -70,7 +70,9 @@ class MySQLDashboardService implements DashboardServiceInterface
         $data = [];
 
         foreach ($statusData as $status) {
-            $labels[] = ucfirst($status->status->value);
+            // Use the enum's getDisplayName method
+            $statusEnum = AppointmentStatuses::from($status->status);
+            $labels[] = $statusEnum->getDisplayName();
             $data[] = $status->count;
         }
 
