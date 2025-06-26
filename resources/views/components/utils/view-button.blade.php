@@ -1,8 +1,9 @@
-@props(['route' => "#"])
+@props(['route' => '#'])
 
 <a wire:navigate href="{{ $route }}"
-    class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150">
-    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 hover:text-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200 ease-in-out group">
+    <svg class="w-3 h-3 mr-1 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor"
+        viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
         </path>
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
