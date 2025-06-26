@@ -163,10 +163,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-center space-x-2">
                                         @can('view', $appointment)
-                                        <a href="{{ route('appointments.show', $appointment->id) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 text-xs">
-                                            View
-                                        </a>
+                                        <x-utils.view-button :route="route('appointments.show', $appointment->id)" />
                                         @endcan
                                         @can('update', $appointment)
                                         <x-utils.update-button :route="route('appointments.edit', $appointment->id)" />
