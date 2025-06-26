@@ -47,7 +47,7 @@ class MySQLDashboardService implements DashboardServiceInterface
 
         $categories = [];
         $data = [];
-        
+
         for ($i = 1; $i <= 12; $i++) {
             $categories[] = Carbon::create()->month($i)->format('M');
             $count = $monthlyData->where('month', $i)->first()->count ?? 0;
@@ -108,24 +108,27 @@ class MySQLDashboardService implements DashboardServiceInterface
     public function getPatientAgeDistribution(): array
     {
         $ageGroups = Patient::selectRaw('
-            CASE 
-                WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) < 18 THEN "Under 18"
-                WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 18 AND 30 THEN "18-30"
-                WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 31 AND 50 THEN "31-50"
-                WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 51 AND 70 THEN "51-70"
-                ELSE "Over 70"
-            END as age_group,
-            COUNT(*) as count
-        ')
-        ->groupBy('age_group')
-        ->get();
+        CASE 
+            WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 0 AND 4 THEN "0-4"
+            WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 5 AND 9 THEN "5-9"
+            WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 10 AND 13 THEN "10-13"
+            WHEN TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) BETWEEN 14 AND 17 THEN "14-17"
+            ELSE "Other"
+        END as age_group,
+        COUNT(*) as count
+    ')
+            ->whereRaw('TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) <= 17')
+            ->groupBy('age_group')
+            ->get();
 
         $labels = [];
         $data = [];
 
         foreach ($ageGroups as $group) {
-            $labels[] = $group->age_group;
-            $data[] = $group->count;
+            if ($group->age_group !== 'Other') {
+                $labels[] = $group->age_group;
+                $data[] = $group->count;
+            }
         }
 
         return [
@@ -145,8 +148,8 @@ class MySQLDashboardService implements DashboardServiceInterface
             END as time_slot,
             COUNT(*) as count
         ')
-        ->groupBy('time_slot')
-        ->get();
+            ->groupBy('time_slot')
+            ->get();
 
         $labels = [];
         $data = [];
@@ -193,7 +196,7 @@ class MySQLDashboardService implements DashboardServiceInterface
 
         $categories = [];
         $data = [];
-        
+
         for ($i = 1; $i <= 12; $i++) {
             $categories[] = Carbon::create()->month($i)->format('M');
             $count = $monthlyData->where('month', $i)->first()->count ?? 0;
@@ -209,7 +212,7 @@ class MySQLDashboardService implements DashboardServiceInterface
     public function getConsultationMetrics(): array
     {
         $totalConsultations = Consultation::count();
-        $avgConsultationTime = 30; 
+        $avgConsultationTime = 30;
         $consultationsToday = Consultation::whereDate('created_at', Carbon::today())->count();
         $consultationsThisWeek = Consultation::whereBetween('created_at', [
             Carbon::now()->startOfWeek(),

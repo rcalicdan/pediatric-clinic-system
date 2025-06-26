@@ -61,6 +61,13 @@ class CreatePage extends Component
         'gender' => 'gender',
     ];
 
+    protected function messages()
+    {
+        return [
+            'birth_date.after' => 'Only patients less than 18 years old are allowed.',
+        ];
+    }
+
     public function getGuardianRules(): array
     {
         return [
@@ -78,7 +85,7 @@ class CreatePage extends Component
         return [
             'patient_first_name' => ['required', 'string', 'min:2', 'max:50'],
             'patient_last_name' => ['required', 'string', 'min:2', 'max:50'],
-            'birth_date' => ['required', 'date', 'before:today'],
+            'birth_date' => ['required', 'date', 'before:today', 'after:' . now()->subYears(17)->format('Y-m-d')],
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
         ];
     }

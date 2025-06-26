@@ -121,26 +121,23 @@ class SQLiteDashboardService implements DashboardServiceInterface
     {
         $patients = Patient::all();
         $ageGroups = [
-            'Under 18' => 0,
-            '18-30' => 0,
-            '31-50' => 0,
-            '51-70' => 0,
-            'Over 70' => 0
+            '0-4 years old' => 0,
+            '5-9 years old' => 0,
+            '10-13 years old' => 0,
+            '14-17 years old' => 0
         ];
 
         foreach ($patients as $patient) {
             $age = Carbon::parse($patient->birth_date)->age;
 
-            if ($age < 18) {
-                $ageGroups['Under 18']++;
-            } elseif ($age >= 18 && $age <= 30) {
-                $ageGroups['18-30']++;
-            } elseif ($age >= 31 && $age <= 50) {
-                $ageGroups['31-50']++;
-            } elseif ($age >= 51 && $age <= 70) {
-                $ageGroups['51-70']++;
-            } else {
-                $ageGroups['Over 70']++;
+            if ($age >= 0 && $age <= 4) {
+                $ageGroups['0-4 years old']++;
+            } elseif ($age >= 5 && $age <= 9) {
+                $ageGroups['5-9 years old']++;
+            } elseif ($age >= 10 && $age <= 13) {
+                $ageGroups['10-13 years old']++;
+            } elseif ($age >= 14 && $age <= 17) {
+                $ageGroups['14-17 years old']++;
             }
         }
 
