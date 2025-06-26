@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Enums\AppointmentStatuses;
+use App\Libraries\Audit\Auditable;
 use App\Models\User;
 
 class Appointment extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $fillable = [
         'patient_id',
@@ -34,11 +35,6 @@ class Appointment extends Model
     public function consultation()
     {
         return $this->hasOne(Consultation::class);
-    }
-
-    public function invoice()
-    {
-        return $this->hasOne(Invoice::class);
     }
 
     /**

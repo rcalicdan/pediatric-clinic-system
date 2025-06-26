@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Libraries\Audit\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class Patient extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $fillable = [
         'first_name',
@@ -26,11 +27,6 @@ class Patient extends Model
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
-    }
-
-    public function immunizations()
-    {
-        return $this->hasMany(Immunization::class);
     }
 
     public function getFullNameAttribute()
