@@ -13,7 +13,7 @@ class ConsultationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return in_array($user->role, [UserRoles::ADMIN, UserRoles::DOCTOR, UserRoles::STAFF]);
+        return in_array($user->role, [UserRoles::ADMIN->value, UserRoles::DOCTOR->value]);
     }
 
     /**
@@ -41,7 +41,7 @@ class ConsultationPolicy
             return true;
         }
 
-        return $user->role === UserRoles::DOCTOR && $consultation->doctor_id === $user->id;
+        return $user->role === UserRoles::DOCTOR->value && $consultation->doctor_id === $user->id;
     }
 
     /**
@@ -49,6 +49,6 @@ class ConsultationPolicy
      */
     public function delete(User $user, Consultation $consultation): bool
     {
-        return $user->role === UserRoles::ADMIN;
+        return $user->role === UserRoles::ADMIN->value;
     }
 }
