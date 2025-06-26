@@ -146,7 +146,6 @@ class UpdatePage extends Component
         return [
             'male' => 'Male',
             'female' => 'Female',
-            'other' => 'Other'
         ];
     }
 
