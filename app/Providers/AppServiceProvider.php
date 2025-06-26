@@ -7,6 +7,8 @@ use App\Observers\AppointmentObserver;
 use App\Services\Dashboard\DashboardServiceInterface;
 use App\Services\Dashboard\MySQLDashboardService;
 use App\Services\Dashboard\SQLiteDashboardService;
+use App\Models\Consultation;
+use App\Observers\ConsultationObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Model::automaticallyEagerLoadRelationships();
-
         Appointment::observe(AppointmentObserver::class);
+        Consultation::observe(ConsultationObserver::class);
     }
 }

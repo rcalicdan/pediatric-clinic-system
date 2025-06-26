@@ -14,8 +14,6 @@ class AppointmentConsultationForm extends Component
     public ?Consultation $consultation = null;
     public bool $isEditing = false;
     public bool $showForm = false;
-
-    // Form fields
     public $user_id;
     public $diagnosis = '';
     public $treatment = '';
@@ -24,8 +22,6 @@ class AppointmentConsultationForm extends Component
     public $weight_kg = '';
     public $temperature_c = '';
     public $notes = '';
-
-    // Available doctors
     public $doctors = [];
 
     protected function rules()
@@ -40,11 +36,9 @@ class AppointmentConsultationForm extends Component
             'notes' => 'nullable|string|max:2000',
         ];
 
-        // Add user_id validation based on user role
         if (auth()->user()->isAdmin()) {
             $rules['user_id'] = 'required|exists:users,id';
         } else {
-            // For non-admin users, user_id should be current user and can't be changed
             $rules['user_id'] = 'required|in:' . auth()->id();
         }
 
@@ -72,22 +66,15 @@ class AppointmentConsultationForm extends Component
         $this->consultation = $appointment->consultation;
         $this->isEditing = $this->consultation !== null;
 
-        // Load doctors (users with doctor or admin role)
         $this->doctors = User::whereIn('role', ['doctor', 'admin'])
             ->orderBy('first_name')
             ->get();
 
-        // Set user_id based on current user and role
         if (!$this->isEditing) {
-            // For new consultations, always set to current user
             $this->user_id = auth()->id();
         } else {
-            // For editing, populate from existing consultation
             $this->populateForm();
-
-            // If current user is not admin and trying to edit someone else's consultation
             if (!auth()->user()->isAdmin() && $this->consultation->user_id !== auth()->id()) {
-                // Reset to current user for non-admin users
                 $this->user_id = auth()->id();
             }
         }
@@ -126,13 +113,9 @@ class AppointmentConsultationForm extends Component
             $this->weight_kg = '';
             $this->temperature_c = '';
             $this->notes = '';
-
-            // Always reset to current user
             $this->user_id = auth()->id();
         } else {
             $this->populateForm();
-
-            // If current user is not admin, ensure user_id is current user
             if (!auth()->user()->isAdmin()) {
                 $this->user_id = auth()->id();
             }
@@ -148,7 +131,6 @@ class AppointmentConsultationForm extends Component
             $this->isEditing ? $this->consultation : Consultation::class
         );
 
-        // Ensure non-admin users can only assign to themselves
         if (!auth()->user()->isAdmin()) {
             $this->user_id = auth()->id();
         }
@@ -178,7 +160,7 @@ class AppointmentConsultationForm extends Component
             }
 
             $this->showForm = false;
-            $this->dispatch('consultation-saved');
+            $this->dispatch('consultation-saved', ['status' => 'success', 'message' => $message]);
             session()->flash('success', $message);
 
             $this->appointment->refresh();
@@ -202,8 +184,6 @@ class AppointmentConsultationForm extends Component
 
             $this->dispatch('consultation-deleted');
             session()->flash('success', 'Consultation deleted successfully.');
-
-            // Refresh the appointment relationship
             $this->appointment->refresh();
         } catch (\Exception $e) {
             $this->addError('general', 'An error occurred while deleting the consultation.');

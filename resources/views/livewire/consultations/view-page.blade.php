@@ -2,6 +2,7 @@
     <x-contents.heading title="Consultation Details" />
 
     <x-contents.layout>
+        <x-flash-session/>
         <div class="p-4 sm:p-6 lg:p-8">
             <!-- Back Button -->
             <div class="mb-6">
