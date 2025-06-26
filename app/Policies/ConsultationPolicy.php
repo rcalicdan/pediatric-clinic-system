@@ -49,6 +49,6 @@ class ConsultationPolicy
      */
     public function delete(User $user, Consultation $consultation): bool
     {
-        return $user->role === UserRoles::ADMIN->value;
+        return $user->isAdmin();
     }
 }

@@ -64,7 +64,7 @@ class MyConsultations extends Component
     public function render()
     {
         $consultations = Consultation::with(['appointment.patient.guardian', 'doctor'])
-            ->where('doctor_id', Auth::id()) 
+            ->where('user_id', Auth::id())
             ->when($this->searchId, function ($query) {
                 $query->where('id', 'like', '%' . $this->searchId . '%');
             })
