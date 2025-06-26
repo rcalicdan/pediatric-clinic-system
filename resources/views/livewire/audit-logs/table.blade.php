@@ -1,9 +1,8 @@
-{{-- resources/views/livewire/audit-logs/table.blade.php --}}
 <section class="w-full">
     <x-contents.heading title="Audit Logs" />
 
     <x-contents.layout>
-        <div x-data="{ isSearchModalOpen: false }" @search-completed.window="isSearchModalOpen = false"
+        <div wire:poll='10s' x-data="{ isSearchModalOpen: false }" @search-completed.window="isSearchModalOpen = false"
             class="p-4 sm:p-6 lg:p-8">
 
             <x-contents.table-head>

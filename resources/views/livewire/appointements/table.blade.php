@@ -2,7 +2,7 @@
     <x-contents.heading title="Appointment Management" />
 
     <x-contents.layout>
-        <div x-data="{ isSearchModalOpen: false }" @search-completed.window="isSearchModalOpen = false" class="p-4 sm:p-6 lg:p-8">
+        <div wire:poll='10s' x-data="{ isSearchModalOpen: false }" @search-completed.window="isSearchModalOpen = false" class="p-4 sm:p-6 lg:p-8">
 
             <x-contents.table-head>
                 <x-utils.search-button searchButtonName="Search Appointments" />
