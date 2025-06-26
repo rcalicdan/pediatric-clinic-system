@@ -8,8 +8,10 @@ use App\Services\Dashboard\DashboardServiceInterface;
 use App\Services\Dashboard\MySQLDashboardService;
 use App\Services\Dashboard\SQLiteDashboardService;
 use App\Models\Consultation;
+use App\Models\User;
 use App\Observers\ConsultationObserver;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -38,5 +40,9 @@ class AppServiceProvider extends ServiceProvider
         Model::automaticallyEagerLoadRelationships();
         Appointment::observe(AppointmentObserver::class);
         Consultation::observe(ConsultationObserver::class);
+
+        Gate::define('view-dashboard', function (User $user) {
+            return $user->isAdmin();
+        });
     }
 }
