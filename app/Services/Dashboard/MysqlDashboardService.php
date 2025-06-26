@@ -37,14 +37,6 @@ class MySQLDashboardService implements DashboardServiceInterface
         return Appointment::whereDate('appointment_date', Carbon::today())->count();
     }
 
-    public function getMonthlyRevenue(): float
-    {
-        return Appointment::where('status', AppointmentStatuses::COMPLETED)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->count() * 500.00; 
-    }
-
     public function getMonthlyAppointmentsData(): array
     {
         $monthlyData = Appointment::selectRaw('MONTH(appointment_date) as month, COUNT(*) as count')
@@ -84,29 +76,6 @@ class MySQLDashboardService implements DashboardServiceInterface
 
         return [
             'labels' => $labels,
-            'data' => $data
-        ];
-    }
-
-    public function getRevenueData(): array
-    {
-        $revenueData = Appointment::selectRaw('DATE(appointment_date) as date, COUNT(*) * 500 as revenue')
-            ->where('status', AppointmentStatuses::COMPLETED)
-            ->where('appointment_date', '>=', Carbon::now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        $categories = [];
-        $data = [];
-
-        foreach ($revenueData as $revenue) {
-            $categories[] = Carbon::parse($revenue->date)->format('M d');
-            $data[] = $revenue->revenue;
-        }
-
-        return [
-            'categories' => $categories,
             'data' => $data
         ];
     }
@@ -193,7 +162,7 @@ class MySQLDashboardService implements DashboardServiceInterface
 
     public function getRecentAppointments(int $limit = 5): array
     {
-        return Appointment::with(['patient', 'consultation'])
+        return Appointment::with(['patient'])
             ->latest()
             ->limit($limit)
             ->get()
@@ -207,7 +176,6 @@ class MySQLDashboardService implements DashboardServiceInterface
                     'status_class' => $appointment->status->getBadgeClass(),
                     'appointment_date' => $appointment->appointment_date->format('M d, Y'),
                     'created_at' => $appointment->created_at->format('M d, Y H:i'),
-                    'amount' => $appointment->status === AppointmentStatuses::COMPLETED ? 500.00 : 0,
                 ];
             })
             ->toArray();
@@ -239,7 +207,7 @@ class MySQLDashboardService implements DashboardServiceInterface
     public function getConsultationMetrics(): array
     {
         $totalConsultations = Consultation::count();
-        $avgConsultationTime = 30; // minutes - placeholder
+        $avgConsultationTime = 30; 
         $consultationsToday = Consultation::whereDate('created_at', Carbon::today())->count();
         $consultationsThisWeek = Consultation::whereBetween('created_at', [
             Carbon::now()->startOfWeek(),

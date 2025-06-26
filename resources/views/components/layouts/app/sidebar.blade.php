@@ -19,25 +19,25 @@
                     wire:navigate>{{ __('Dashboard') }}
                 </flux:navlist.item>
                 @can('viewAny', App\Models\User::class)
-                <flux:navlist.item icon="user" :href="route('users.index')" :current="request()->routeIs('users.*')"
+                <flux:navlist.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')"
                     wire:navigate>{{ __('Users') }}
                 </flux:navlist.item>
                 @endcan
-                <flux:navlist.item icon="user-plus" :href="route('patients.index')"
+                <flux:navlist.item icon="heart" :href="route('patients.index')"
                     :current="request()->routeIs('patients.*')" wire:navigate>{{ __('Patients') }}
                 </flux:navlist.item>
                 @can('viewAny', App\Models\Appointment::class)
-                <flux:navlist.item icon="user-plus" :href="route('appointments.index')"
+                <flux:navlist.item icon="calendar-days" :href="route('appointments.index')"
                     :current="request()->routeIs('appointments.*')" wire:navigate>{{ __('Appointments') }}
                 </flux:navlist.item>
                 @endcan
                 @can('viewAny', App\Models\Consultation::class)
-                <flux:navlist.item icon="user-plus" :href="route('consultations.index')"
+                <flux:navlist.item icon="clipboard-document-list" :href="route('consultations.index')"
                     :current="request()->routeIs('consultations.*')" wire:navigate>{{ __('Consultations') }}
                 </flux:navlist.item>
                 @endcan
                 @can('viewAny', App\Models\Consultation::class)
-                <flux:navlist.item icon="user-plus" :href="route('my-consultations')"
+                <flux:navlist.item icon="clipboard-document-check" :href="route('my-consultations')"
                     :current="request()->routeIs('my-consultations')" wire:navigate>{{ __('My Consultations') }}
                 </flux:navlist.item>
                 @endcan

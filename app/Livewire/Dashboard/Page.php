@@ -1,5 +1,4 @@
 <?php
-// app/Livewire/Dashboard/Page.php
 
 namespace App\Livewire\Dashboard;
 
@@ -23,10 +22,8 @@ class Page extends Component
             'pendingAppointments' => $this->dashboardService->getPendingAppointments(),
             'completedAppointments' => $this->dashboardService->getCompletedAppointments(),
             'todayAppointments' => $this->dashboardService->getTodayAppointments(),
-            'monthlyRevenue' => $this->dashboardService->getMonthlyRevenue(),
             'monthlyAppointmentsData' => $this->dashboardService->getMonthlyAppointmentsData(),
             'appointmentStatusData' => $this->dashboardService->getAppointmentStatusData(),
-            'revenueData' => $this->dashboardService->getRevenueData(),
             'topDoctorsData' => $this->dashboardService->getTopDoctorsData(),
             'patientAgeDistribution' => $this->dashboardService->getPatientAgeDistribution(),
             'appointmentsByTimeSlot' => $this->dashboardService->getAppointmentsByTimeSlot(),

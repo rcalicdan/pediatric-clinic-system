@@ -1,4 +1,3 @@
-{{-- resources/views/livewire/patients/view-page.blade.php --}}
 <section class="w-full">
     <x-contents.heading title="Patient Details" />
 
@@ -119,10 +118,6 @@
                                 </th>
                                 <th scope="col"
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Invoice
-                                </th>
-                                <th scope="col"
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Notes
                                 </th>
                                 <th scope="col"
@@ -154,13 +149,6 @@
                                     <span class="text-green-600">✓ Completed</span>
                                     @else
                                     <span class="text-gray-400">Not Started</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    @if($appointment->invoice)
-                                    <span class="text-green-600">✓ Generated</span>
-                                    @else
-                                    <span class="text-gray-400">Pending</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700">
@@ -218,7 +206,7 @@
 
             <!-- Back Button -->
             <div class="mt-6">
-                <x-utils.link-button :href="route('patients.index')" buttonText="Back to Patients"/>
+                <x-utils.link-button :href="route('patients.index')" buttonText="Back to Patients" />
             </div>
 
         </div>

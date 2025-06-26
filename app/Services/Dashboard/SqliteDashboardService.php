@@ -14,63 +14,43 @@ class SQLiteDashboardService implements DashboardServiceInterface
 {
     public function getTotalPatients(): int
     {
-        return DB::connection('sqlite')->table('patients')->count();
+        return Patient::count();
     }
 
     public function getTotalAppointments(): int
     {
-        return DB::connection('sqlite')->table('appointments')->count();
+        return Appointment::count();
     }
 
     public function getPendingAppointments(): int
     {
-        return DB::connection('sqlite')->table('appointments')
-            ->where('status', AppointmentStatuses::WAITING->value)
-            ->count();
+        return Appointment::where('status', AppointmentStatuses::WAITING->value)->count();
     }
 
     public function getCompletedAppointments(): int
     {
-        return DB::connection('sqlite')->table('appointments')
-            ->where('status', AppointmentStatuses::COMPLETED->value)
-            ->count();
+        return Appointment::where('status', AppointmentStatuses::COMPLETED->value)->count();
     }
 
     public function getTodayAppointments(): int
     {
-        return DB::connection('sqlite')->table('appointments')
-            ->whereDate('appointment_date', Carbon::today())
-            ->count();
-    }
-
-    public function getMonthlyRevenue(): float
-    {
-        $completedAppointments = DB::connection('sqlite')->table('appointments')
-            ->where('status', AppointmentStatuses::COMPLETED->value)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->count();
-
-        return $completedAppointments * 500.00;
+        return Appointment::whereDate('appointment_date', Carbon::today())->count();
     }
 
     public function getMonthlyAppointmentsData(): array
     {
-        $monthlyData = DB::connection('sqlite')->table('appointments')
-            ->select(DB::raw('strftime("%m", appointment_date) as month, COUNT(*) as count'))
-            ->where(DB::raw('strftime("%Y", appointment_date)'), Carbon::now()->year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        $appointments = Appointment::whereYear('appointment_date', Carbon::now()->year)
+            ->get()
+            ->groupBy(function ($appointment) {
+                return Carbon::parse($appointment->appointment_date)->month;
+            });
 
         $categories = [];
         $data = [];
-        
+
         for ($i = 1; $i <= 12; $i++) {
             $categories[] = Carbon::create()->month($i)->format('M');
-            $monthStr = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $count = $monthlyData->where('month', $monthStr)->first()->count ?? 0;
-            $data[] = $count;
+            $data[] = $appointments->get($i)?->count() ?? 0;
         }
 
         return [
@@ -81,17 +61,14 @@ class SQLiteDashboardService implements DashboardServiceInterface
 
     public function getAppointmentStatusData(): array
     {
-        $statusData = DB::connection('sqlite')->table('appointments')
-            ->select('status', DB::raw('COUNT(*) as count'))
-            ->groupBy('status')
-            ->get();
+        $appointments = Appointment::all()->groupBy('status');
 
         $labels = [];
         $data = [];
 
-        foreach ($statusData as $status) {
-            $labels[] = ucfirst($status->status);
-            $data[] = $status->count;
+        foreach ($appointments as $status => $appointmentGroup) {
+            $labels[] = ucfirst($status);
+            $data[] = $appointmentGroup->count();
         }
 
         return [
@@ -100,46 +77,32 @@ class SQLiteDashboardService implements DashboardServiceInterface
         ];
     }
 
-    public function getRevenueData(): array
-    {
-        $revenueData = DB::connection('sqlite')->table('appointments')
-            ->select(DB::raw('DATE(appointment_date) as date, COUNT(*) * 500 as revenue'))
-            ->where('status', AppointmentStatuses::COMPLETED->value)
-            ->where('appointment_date', '>=', Carbon::now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        $categories = [];
-        $data = [];
-
-        foreach ($revenueData as $revenue) {
-            $categories[] = Carbon::parse($revenue->date)->format('M d');
-            $data[] = $revenue->revenue;
-        }
-
-        return [
-            'categories' => $categories,
-            'data' => $data
-        ];
-    }
-
     public function getTopDoctorsData(): array
     {
-        $doctorsData = DB::connection('sqlite')->table('consultations')
-            ->join('users', 'consultations.user_id', '=', 'users.id')
-            ->select('users.id', 'users.first_name', 'users.last_name', DB::raw('COUNT(*) as consultation_count'))
-            ->groupBy('users.id', 'users.first_name', 'users.last_name')
-            ->orderByDesc('consultation_count')
-            ->limit(5)
-            ->get();
+        $consultations = Consultation::with('doctor:id,first_name,last_name')
+            ->get()
+            ->groupBy('user_id');
+
+        $doctorsData = [];
+        foreach ($consultations as $userId => $userConsultations) {
+            $doctor = $userConsultations->first()->doctor;
+            $doctorsData[] = [
+                'doctor_name' => $doctor ? $doctor->full_name : 'Unknown',
+                'consultation_count' => $userConsultations->count()
+            ];
+        }
+
+        // Sort by consultation count and take top 5
+        $topDoctors = collect($doctorsData)
+            ->sortByDesc('consultation_count')
+            ->take(5);
 
         $labels = [];
         $data = [];
 
-        foreach ($doctorsData as $doctor) {
-            $labels[] = $doctor->first_name . ' ' . $doctor->last_name;
-            $data[] = $doctor->consultation_count;
+        foreach ($topDoctors as $doctor) {
+            $labels[] = $doctor['doctor_name'];
+            $data[] = $doctor['consultation_count'];
         }
 
         return [
@@ -150,108 +113,103 @@ class SQLiteDashboardService implements DashboardServiceInterface
 
     public function getPatientAgeDistribution(): array
     {
-        $ageGroups = DB::connection('sqlite')->table('patients')
-            ->select(DB::raw('
-                CASE 
-                    WHEN (julianday("now") - julianday(birth_date)) / 365.25 < 18 THEN "Under 18"
-                    WHEN (julianday("now") - julianday(birth_date)) / 365.25 BETWEEN 18 AND 30 THEN "18-30"
-                    WHEN (julianday("now") - julianday(birth_date)) / 365.25 BETWEEN 31 AND 50 THEN "31-50"
-                    WHEN (julianday("now") - julianday(birth_date)) / 365.25 BETWEEN 51 AND 70 THEN "51-70"
-                    ELSE "Over 70"
-                END as age_group,
-                COUNT(*) as count
-            '))
-            ->groupBy('age_group')
-            ->get();
+        $patients = Patient::all();
+        $ageGroups = [
+            'Under 18' => 0,
+            '18-30' => 0,
+            '31-50' => 0,
+            '51-70' => 0,
+            'Over 70' => 0
+        ];
 
-        $labels = [];
-        $data = [];
+        foreach ($patients as $patient) {
+            $age = Carbon::parse($patient->birth_date)->age;
 
-        foreach ($ageGroups as $group) {
-            $labels[] = $group->age_group;
-            $data[] = $group->count;
+            if ($age < 18) {
+                $ageGroups['Under 18']++;
+            } elseif ($age >= 18 && $age <= 30) {
+                $ageGroups['18-30']++;
+            } elseif ($age >= 31 && $age <= 50) {
+                $ageGroups['31-50']++;
+            } elseif ($age >= 51 && $age <= 70) {
+                $ageGroups['51-70']++;
+            } else {
+                $ageGroups['Over 70']++;
+            }
         }
 
         return [
-            'labels' => $labels,
-            'data' => $data
+            'labels' => array_keys($ageGroups),
+            'data' => array_values($ageGroups)
         ];
     }
 
     public function getAppointmentsByTimeSlot(): array
     {
-        $timeSlots = DB::connection('sqlite')->table('appointments')
-            ->select(DB::raw('
-                CASE 
-                    WHEN CAST(strftime("%H", created_at) AS INTEGER) BETWEEN 8 AND 11 THEN "Morning (8-11 AM)"
-                    WHEN CAST(strftime("%H", created_at) AS INTEGER) BETWEEN 12 AND 15 THEN "Afternoon (12-3 PM)"
-                    WHEN CAST(strftime("%H", created_at) AS INTEGER) BETWEEN 16 AND 19 THEN "Evening (4-7 PM)"
-                    ELSE "Other"
-                END as time_slot,
-                COUNT(*) as count
-            '))
-            ->groupBy('time_slot')
-            ->get();
+        $appointments = Appointment::all();
+        $timeSlots = [
+            'Morning (8-11 AM)' => 0,
+            'Afternoon (12-3 PM)' => 0,
+            'Evening (4-7 PM)' => 0,
+            'Other' => 0
+        ];
 
-        $labels = [];
-        $data = [];
+        foreach ($appointments as $appointment) {
+            $hour = Carbon::parse($appointment->created_at)->hour;
 
-        foreach ($timeSlots as $slot) {
-            $labels[] = $slot->time_slot;
-            $data[] = $slot->count;
+            if ($hour >= 8 && $hour <= 11) {
+                $timeSlots['Morning (8-11 AM)']++;
+            } elseif ($hour >= 12 && $hour <= 15) {
+                $timeSlots['Afternoon (12-3 PM)']++;
+            } elseif ($hour >= 16 && $hour <= 19) {
+                $timeSlots['Evening (4-7 PM)']++;
+            } else {
+                $timeSlots['Other']++;
+            }
         }
 
         return [
-            'labels' => $labels,
-            'data' => $data
+            'labels' => array_keys($timeSlots),
+            'data' => array_values($timeSlots)
         ];
     }
 
     public function getRecentAppointments(int $limit = 5): array
     {
-        $appointments = DB::connection('sqlite')->table('appointments')
-            ->join('patients', 'appointments.patient_id', '=', 'patients.id')
-            ->select(
-                'appointments.*',
-                'patients.first_name',
-                'patients.last_name'
-            )
-            ->orderByDesc('appointments.created_at')
+        return Appointment::with(['patient'])
+            ->latest()
             ->limit($limit)
-            ->get();
-
-        return $appointments->map(function ($appointment) {
-            return [
-                'id' => $appointment->id,
-                'queue_number' => $appointment->queue_number,
-                'patient_name' => $appointment->first_name . ' ' . $appointment->last_name,
-                'status' => $appointment->status,
-                'status_display' => ucfirst($appointment->status),
-                'status_class' => $this->getStatusClass($appointment->status),
-                'appointment_date' => Carbon::parse($appointment->appointment_date)->format('M d, Y'),
-                'created_at' => Carbon::parse($appointment->created_at)->format('M d, Y H:i'),
-                'amount' => $appointment->status === AppointmentStatuses::COMPLETED->value ? 500.00 : 0,
-            ];
-        })->toArray();
+            ->get()
+            ->map(function ($appointment) {
+                return [
+                    'id' => $appointment->id,
+                    'queue_number' => $appointment->queue_number,
+                    'patient_name' => $appointment->patient->full_name,
+                    'status' => $appointment->status,
+                    'status_display' => ucfirst($appointment->status),
+                    'status_class' => $this->getStatusClass($appointment->status),
+                    'appointment_date' => Carbon::parse($appointment->appointment_date)->format('M d, Y'),
+                    'created_at' => Carbon::parse($appointment->created_at)->format('M d, Y H:i'),
+                ];
+            })
+            ->toArray();
     }
 
     public function getMonthlyPatientsGrowth(): array
     {
-        $monthlyData = DB::connection('sqlite')->table('patients')
-            ->select(DB::raw('strftime("%m", created_at) as month, COUNT(*) as count'))
-            ->where(DB::raw('strftime("%Y", created_at)'), Carbon::now()->year)
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        // Use Eloquent instead of raw queries
+        $patients = Patient::whereYear('created_at', Carbon::now()->year)
+            ->get()
+            ->groupBy(function ($patient) {
+                return Carbon::parse($patient->created_at)->month;
+            });
 
         $categories = [];
         $data = [];
-        
+
         for ($i = 1; $i <= 12; $i++) {
             $categories[] = Carbon::create()->month($i)->format('M');
-            $monthStr = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $count = $monthlyData->where('month', $monthStr)->first()->count ?? 0;
-            $data[] = $count;
+            $data[] = $patients->get($i)?->count() ?? 0;
         }
 
         return [
@@ -262,17 +220,13 @@ class SQLiteDashboardService implements DashboardServiceInterface
 
     public function getConsultationMetrics(): array
     {
-        $totalConsultations = DB::connection('sqlite')->table('consultations')->count();
-        $avgConsultationTime = 30; // minutes - placeholder
-        $consultationsToday = DB::connection('sqlite')->table('consultations')
-            ->whereDate('created_at', Carbon::today())
-            ->count();
-        $consultationsThisWeek = DB::connection('sqlite')->table('consultations')
-            ->whereBetween('created_at', [
-                Carbon::now()->startOfWeek(),
-                Carbon::now()->endOfWeek()
-            ])
-            ->count();
+        $totalConsultations = Consultation::count();
+        $avgConsultationTime = 30;
+        $consultationsToday = Consultation::whereDate('created_at', Carbon::today())->count();
+        $consultationsThisWeek = Consultation::whereBetween('created_at', [
+            Carbon::now()->startOfWeek(),
+            Carbon::now()->endOfWeek()
+        ])->count();
 
         return [
             'total_consultations' => $totalConsultations,

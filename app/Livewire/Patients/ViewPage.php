@@ -15,14 +15,14 @@ class ViewPage extends Component
 
     public function mount(Patient $patient)
     {
-        $this->patient = $patient->load(['guardian', 'appointments.consultation', 'appointments.invoice', 'immunizations']);
+        $this->patient = $patient->load(['guardian', 'appointments.consultation',]);
     }
 
     public function getStatusBadgeClass(AppointmentStatuses $status): string
     {
         return match ($status) {
             AppointmentStatuses::COMPLETED => 'bg-green-100 text-green-800',
-            AppointmentStatuses::SCHEDULED => 'bg-blue-100 text-blue-800',
+            AppointmentStatuses::WAITING => 'bg-blue-100 text-blue-800',
             AppointmentStatuses::CANCELLED => 'bg-red-100 text-red-800',
             AppointmentStatuses::MISSED => 'bg-yellow-100 text-yellow-800',
         };

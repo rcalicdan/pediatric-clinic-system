@@ -2,7 +2,7 @@
     <x-contents.heading title="Appointment Details" />
 
     <x-contents.layout>
-        <x-flash-session/>
+        <x-flash-session />
         <div class="p-4 sm:p-6 lg:p-8">
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div class="px-4 py-5 sm:px-6">
@@ -50,12 +50,12 @@
                             </dd>
                         </div>
                         @if ($appointment->notes)
-                            <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                                <dt class="text-sm font-medium text-gray-500">Notes</dt>
-                                <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                                    {{ $appointment->notes }}
-                                </dd>
-                            </div>
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Notes</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                {{ $appointment->notes }}
+                            </dd>
+                        </div>
                         @endif
                         <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                             <dt class="text-sm font-medium text-gray-500">Created At</dt>
@@ -76,27 +76,10 @@
             <!-- Consultation Section - Replace the existing consultation section with this -->
             @livewire('consultations.appointment-consultation-form', ['appointment' => $appointment])
 
-            @if ($appointment->invoice)
-                <div class="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
-                            Invoice
-                        </h3>
-                        <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                            Billing information for this appointment
-                        </p>
-                    </div>
-                    <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-                        <x-utils.link-button :href="route('invoices.show', $appointment->invoice->id)" button-text="View Invoice"
-                            class="bg-blue-600 hover:bg-blue-700 text-white" />
-                    </div>
-                </div>
-            @endif
-
             <div class="mt-6 flex justify-end space-x-3">
                 @can('update', $appointment)
-                    <x-utils.link-button :href="route('appointments.edit', $appointment->id)" button-text="Edit Appointment"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white" />
+                <x-utils.link-button :href="route('appointments.edit', $appointment->id)" button-text="Edit Appointment"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white" />
                 @endcan
                 <x-utils.link-button :href="route('appointments.index')" button-text="Back to List" />
             </div>
