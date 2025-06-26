@@ -16,6 +16,8 @@ class Page extends Component
 
     public function render()
     {
+        $this->authorize('view-dashboard');
+
         $data = [
             'totalPatients' => $this->dashboardService->getTotalPatients(),
             'totalAppointments' => $this->dashboardService->getTotalAppointments(),

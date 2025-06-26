@@ -70,6 +70,8 @@ class Table extends Component
 
     public function render()
     {
+        $this->authorize('viewAny', Consultation::class);
+        
         $consultations = Consultation::with(['appointment.patient.guardian', 'doctor'])
             ->when($this->searchId, function ($query) {
                 $query->where('id', 'like', '%' . $this->searchId . '%');

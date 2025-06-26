@@ -31,7 +31,7 @@ class ViewPage extends Component
     public function render()
     {
         $appointments = $this->patient->appointments()
-            ->with(['consultation', 'invoice'])
+            ->with(['consultation',])
             ->orderBy('scheduled_at', 'desc')
             ->paginate(10);
 

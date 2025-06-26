@@ -74,7 +74,9 @@
             </div>
 
             <!-- Consultation Section - Replace the existing consultation section with this -->
+            @can('viewAny', App\Models\Consultation::class)
             @livewire('consultations.appointment-consultation-form', ['appointment' => $appointment])
+            @endcan
 
             <div class="mt-6 flex justify-end space-x-3">
                 @can('update', $appointment)

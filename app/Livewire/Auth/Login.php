@@ -44,9 +44,10 @@ class Login extends Component
         Session::regenerate();
 
         if (!Auth::user()->isAdmin()) {
-            $this->redirectIntended(default: route('appointments.index', absolute: false), navigate: true);
+            $this->redirectIntended(default: route('patients.index', absolute: false), navigate: true);
             return;
         }
+
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 

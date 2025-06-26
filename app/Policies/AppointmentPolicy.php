@@ -38,10 +38,10 @@ class AppointmentPolicy
             return true;
         }
 
-        if (!$appointment->canBeModified()) {
+        if (!$appointment->canBeModified() && !$user->isAdmin()) {
             return false;
         }
 
-        return in_array($user->role, [UserRoles::DOCTOR->value, UserRoles::STAFF->value]);
+        return false;
     }
 }
