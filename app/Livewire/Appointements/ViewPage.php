@@ -24,7 +24,7 @@ class ViewPage extends Component
         $this->appointment->load(['patient', 'consultation.doctor', 'invoice']);
     }
 
-    #[On('consulation-saved')]
+    #[On('consultation-saved')]
     public function flashSessionMessage($event)
     {
         if ($event['status'] === 'success') {

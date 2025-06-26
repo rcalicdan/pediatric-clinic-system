@@ -2,6 +2,7 @@
     <x-contents.heading title="Appointment Details" />
 
     <x-contents.layout>
+        <x-flash-session/>
         <div class="p-4 sm:p-6 lg:p-8">
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div class="px-4 py-5 sm:px-6">
