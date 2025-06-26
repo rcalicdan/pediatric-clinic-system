@@ -286,7 +286,7 @@ trait Auditable
     /**
      * Get model-specific excluded attributes
      */
-    protected function getAuditExcluded(): array
+    public function getAuditExcluded(): array
     {
         $default = [
             'created_at',
