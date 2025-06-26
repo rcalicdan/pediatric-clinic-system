@@ -16,32 +16,51 @@
         <flux:navlist variant="outline">
             <flux:navlist.group :heading="__('Platform')" class="grid">
                 <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')"
-                    wire:navigate>{{ __('Dashboard') }}
+                    wire:navigate>
+                    {{ __('Dashboard') }}
                 </flux:navlist.item>
+
                 @can('viewAny', App\Models\User::class)
-                <flux:navlist.item icon="users" :href="route('users.index')" :current="request()->routeIs('users.*')"
-                    wire:navigate>{{ __('Users') }}
+                <flux:navlist.item icon="user-group" :href="route('users.index')"
+                    :current="request()->routeIs('users.*')" wire:navigate>
+                    {{ __('Users') }}
                 </flux:navlist.item>
                 @endcan
-                <flux:navlist.item icon="heart" :href="route('patients.index')"
-                    :current="request()->routeIs('patients.*')" wire:navigate>{{ __('Patients') }}
+
+                <flux:navlist.item icon="user" :href="route('patients.index')"
+                    :current="request()->routeIs('patients.*')" wire:navigate>
+                    {{ __('Patients') }}
                 </flux:navlist.item>
+
                 @can('viewAny', App\Models\Appointment::class)
                 <flux:navlist.item icon="calendar-days" :href="route('appointments.index')"
-                    :current="request()->routeIs('appointments.*')" wire:navigate>{{ __('Appointments') }}
+                    :current="request()->routeIs('appointments.*')" wire:navigate>
+                    {{ __('Appointments') }}
                 </flux:navlist.item>
                 @endcan
+
                 @can('viewAny', App\Models\Consultation::class)
-                <flux:navlist.item icon="clipboard-document-list" :href="route('consultations.index')"
-                    :current="request()->routeIs('consultations.*')" wire:navigate>{{ __('Consultations') }}
+                <flux:navlist.item icon="chat-bubble-left-right" :href="route('consultations.index')"
+                    :current="request()->routeIs('consultations.*')" wire:navigate>
+                    {{ __('Consultations') }}
                 </flux:navlist.item>
                 @endcan
+
                 @can('viewAny', App\Models\Consultation::class)
-                <flux:navlist.item icon="clipboard-document-check" :href="route('my-consultations')"
-                    :current="request()->routeIs('my-consultations')" wire:navigate>{{ __('My Consultations') }}
+                <flux:navlist.item icon="chat-bubble-left-right" :href="route('my-consultations')"
+                    :current="request()->routeIs('my-consultations')" wire:navigate>
+                    {{ __('My Consultations') }}
+                </flux:navlist.item>
+                @endcan
+
+                @can('viewAny', App\Models\AuditLog::class)
+                <flux:navlist.item icon="document-text" :href="route('audit-logs.index')"
+                    :current="request()->routeIs('audit-logs.*')" wire:navigate>
+                    {{ __('Audit Logs') }}
                 </flux:navlist.item>
                 @endcan
             </flux:navlist.group>
+
         </flux:navlist>
 
         <flux:spacer />

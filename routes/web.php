@@ -55,6 +55,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('my-consultations', MyConsultations::class)->name('my-consultations');
 
+    Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
+        Route::get('/', App\Livewire\AuditLogs\Table::class)->name('index');
+        Route::get('/{auditLog}', App\Livewire\AuditLogs\ViewPage::class)->name('show');
+    });
+
     Route::prefix('settings')->group(function () {
         Route::redirect('', 'profile');
         Route::get('profile', Profile::class)->name('settings.profile');
