@@ -1,4 +1,5 @@
 <?php
+// app/Libraries/Audit/AuditLogger.php
 
 namespace App\Libraries\Audit;
 
@@ -19,6 +20,7 @@ class AuditLogger
     ];
 
     protected static ?string $customMessage = null;
+    protected static array $additionalData = [];
 
     public static function created(Model $model, ?string $message = null): void
     {
@@ -29,9 +31,9 @@ class AuditLogger
     {
         $originalData = $model->getOriginal();
         $newData = $model->getAttributes();
-        
+
         $changes = static::getChanges($originalData, $newData);
-        
+
         if (!empty($changes['old']) || !empty($changes['new'])) {
             static::log($model, 'updated', $changes['old'], $changes['new'], $message);
         }
@@ -45,7 +47,7 @@ class AuditLogger
     public static function attached(Model $model, string $relation, $attachedIds, array $attributes = [], ?string $message = null): void
     {
         $attachedIds = is_array($attachedIds) ? $attachedIds : [$attachedIds];
-        
+
         static::log($model, 'attached', [], [
             'relation' => $relation,
             'attached_ids' => $attachedIds,
@@ -56,7 +58,7 @@ class AuditLogger
     public static function detached(Model $model, string $relation, $detachedIds, ?string $message = null): void
     {
         $detachedIds = is_array($detachedIds) ? $detachedIds : [$detachedIds];
-        
+
         static::log($model, 'detached', [
             'relation' => $relation,
             'detached_ids' => $detachedIds,
@@ -84,17 +86,26 @@ class AuditLogger
         return new static();
     }
 
+    public static function withAdditionalData(array $data): self
+    {
+        static::$additionalData = array_merge(static::$additionalData, $data);
+        return new static();
+    }
+
     protected static function log(Model $model, string $event, array $oldValues, array $newValues, ?string $message = null): void
     {
         // Use custom message if provided, otherwise use the global custom message
         $finalMessage = $message ?? static::$customMessage;
-        
-        // Clear the global custom message after use
-        static::$customMessage = null;
+
+        // Get excluded attributes - check if model has the method first
+        $excludedAttributes = static::getExcludedAttributesForModel($model);
 
         // Filter out excluded attributes
-        $oldValues = static::filterAttributes($oldValues);
-        $newValues = static::filterAttributes($newValues);
+        $oldValues = static::filterAttributes($oldValues, $excludedAttributes);
+        $newValues = static::filterAttributes($newValues, $excludedAttributes);
+
+        // Merge additional data
+        $additionalData = static::$additionalData;
 
         AuditLog::create([
             'auditable_type' => get_class($model),
@@ -107,7 +118,31 @@ class AuditLogger
             'ip_address' => static::getClientIpAddress(),
             'user_agent' => static::getUserAgent(),
             'url' => static::getCurrentUrl(),
+            'additional_data' => !empty($additionalData) ? $additionalData : null,
         ]);
+
+        // Clear static properties after use
+        static::$customMessage = null;
+        static::$additionalData = [];
+    }
+
+    /**
+     * Get excluded attributes for a specific model
+     */
+    protected static function getExcludedAttributesForModel(Model $model): array
+    {
+        // Check if model uses Auditable trait and has the method
+        if (method_exists($model, 'getAuditExcluded')) {
+            return $model->getAuditExcluded();
+        }
+
+        // Check if model has auditExcluded property
+        if (property_exists($model, 'auditExcluded')) {
+            return array_merge(static::$excludedAttributes, $model->auditExcluded);
+        }
+
+        // Fall back to default excluded attributes
+        return static::$excludedAttributes;
     }
 
     protected static function getChanges(array $original, array $current): array
@@ -125,9 +160,10 @@ class AuditLogger
         return ['old' => $oldValues, 'new' => $newValues];
     }
 
-    protected static function filterAttributes(array $attributes): array
+    protected static function filterAttributes(array $attributes, ?array $excludedAttributes = null): array
     {
-        return array_diff_key($attributes, array_flip(static::$excludedAttributes));
+        $excluded = $excludedAttributes ?? static::$excludedAttributes;
+        return array_diff_key($attributes, array_flip($excluded));
     }
 
     protected static function getCurrentUserId(): ?int
