@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\UpMiddleware;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Application;
@@ -13,7 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->append(UpMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

@@ -1,5 +1,4 @@
 <?php
-// app/Services/Dashboard/DashboardServiceInterface.php
 
 namespace App\Services\Dashboard;
 
