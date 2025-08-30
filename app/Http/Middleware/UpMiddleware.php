@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Rcalicdan\FiberAsync\EventLoop\EventLoop;
 use Symfony\Component\HttpFoundation\Response;
 
 class UpMiddleware
@@ -16,8 +17,7 @@ class UpMiddleware
     public function handle(Request $request, Closure $next): Response
     {
 
-        abort(503, 'Service Unavailable');
-
+        EventLoop::getInstance()->run();
 
         return $next($request);
     }

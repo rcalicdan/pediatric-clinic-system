@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
+use Rcalicdan\FiberAsync\Api\AsyncDb;
+use Rcalicdan\FiberAsync\Api\DB;
 
 class CreatePage extends Component
 {
@@ -43,10 +45,12 @@ class CreatePage extends Component
 
     public function create()
     {
-        $this->authorize('create', User::class);
-        $validatedData = $this->validate();
+        run(function () {
+            $this->authorize('create', User::class);
+            $validatedData = $this->validate();
 
-        User::create($validatedData);
+            DB::table('usersss')->insert($validatedData);
+        });
 
         session()->flash('success', 'User created successfully.');
 
