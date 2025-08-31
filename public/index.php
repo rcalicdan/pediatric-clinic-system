@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Rcalicdan\FiberAsync\EventLoop\EventLoop;
 
 define('LARAVEL_START', microtime(true));
 
@@ -16,5 +17,7 @@ require __DIR__.'/../vendor/autoload.php';
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
+
+EventLoop::getInstance()->run();
 
 $app->handleRequest(Request::capture());

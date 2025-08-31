@@ -10,6 +10,8 @@ use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 use Rcalicdan\FiberAsync\Api\AsyncDb;
 use Rcalicdan\FiberAsync\Api\DB;
+use Rcalicdan\FiberAsync\Promise\Interfaces\PromiseInterface;
+
 
 class CreatePage extends Component
 {
@@ -45,16 +47,24 @@ class CreatePage extends Component
 
     public function create()
     {
-        run(function () {
+        return run(function () {
             $this->authorize('create', User::class);
             $validatedData = $this->validate();
 
-            DB::table('usersss')->insert($validatedData);
+            $insertData = collect($validatedData)
+                ->except(['password_confirmation'])
+                ->merge([
+                    'password' => bcrypt($validatedData['password']),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ])
+                ->toArray();
+
+            await(DB::table('users')->insert($insertData));
+            session()->flash('success', 'User created successfully.');
+
+            return $this->redirectRoute('users.index', navigate: true);
         });
-
-        session()->flash('success', 'User created successfully.');
-
-        return $this->redirectRoute('users.index', navigate: true);
     }
 
     public function getAvailableRoles(): array
